@@ -1,7 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.10"
+    kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
     application
 }
 
@@ -10,10 +11,13 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven (url = "https://jitpack.io")
 }
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("com.github.uakihir0:bsky4j:0.5.2")
 }
 
 tasks.test {
@@ -25,5 +29,10 @@ tasks.withType<KotlinCompile> {
 }
 
 application {
-    mainClass.set("MainKt")
+    val port: String by project
+    val logFile: String by project
+
+    mainClass.set("com.atty.MainKt")
+
+    applicationDefaultJvmArgs = listOf("-Dport=$port", "-DlogFile=$logFile")
 }
