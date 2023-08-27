@@ -3,6 +3,7 @@ package com.atty
 import com.atty.libs.BlueskyClient
 import com.atty.libs.FeedReader
 import com.atty.libs.NotificationReader
+import com.atty.libs.PostSender
 import com.atty.models.AtConfig
 import java.net.Socket
 import java.nio.charset.Charset
@@ -10,7 +11,8 @@ import java.nio.charset.Charset
 
 enum class BskyOptions(val choice: Int) {
     HOME_TIMELINE(1),
-    NOTIFICATIONS_TIMELINE(2)
+    NOTIFICATIONS_TIMELINE(2),
+    POST_SKEET(3)
 }
 
 data class OptionItem(val optionString: String, val option: BskyOptions)
@@ -61,11 +63,18 @@ class AtReaderThread(private val clientSocket: Socket,
                 when (selectedMenuItem) {
                     BskyOptions.HOME_TIMELINE.choice -> {
                         val feed = blueskyClient.getHomeTimeline()
-                        FeedReader(feed, clientSocket).readPosts()
+                        FeedReader(feed, blueskyClient, clientSocket).readPosts()
                     }
                     BskyOptions.NOTIFICATIONS_TIMELINE.choice -> {
                         val notifications = blueskyClient.getNotificationsTimeline()
                         NotificationReader(notifications, blueskyClient, clientSocket).readNotifications()
+                    }
+                    BskyOptions.POST_SKEET.choice -> {
+                        val post = PostSender(clientSocket).getPendingPost()
+                        blueskyClient.sendPost(post)
+                        clientSocket.getOutputStream().write(
+                            "\n Sent Post! \n".toByteArray()
+                        )
                     }
                 }
             } catch (ex: Throwable) { // TODO: be more specific
@@ -84,7 +93,8 @@ class AtReaderThread(private val clientSocket: Socket,
     private companion object {
         val bskyOptions = listOf(
             OptionItem("Home Timeline", BskyOptions.HOME_TIMELINE),
-            OptionItem("Notifications Timeline", BskyOptions.NOTIFICATIONS_TIMELINE)
+            OptionItem("Notifications Timeline", BskyOptions.NOTIFICATIONS_TIMELINE),
+            OptionItem("Post Skeet", BskyOptions.POST_SKEET)
         )
     }
 }

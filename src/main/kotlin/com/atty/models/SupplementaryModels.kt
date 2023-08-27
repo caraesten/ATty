@@ -2,8 +2,7 @@ package com.atty.models
 
 import bsky4j.model.bsky.actor.ActorDefsProfileView
 import bsky4j.model.bsky.actor.ActorDefsProfileViewBasic
-import bsky4j.model.bsky.feed.FeedDefsPostView
-import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
+import bsky4j.model.bsky.feed.FeedPost
 
 data class AuthorAttributes(
     val displayName: String,
@@ -16,4 +15,10 @@ fun ActorDefsProfileView.getAuthorAttributes(): AuthorAttributes = AuthorAttribu
 
 fun ActorDefsProfileViewBasic.getAuthorAttributes(): AuthorAttributes = AuthorAttributes(
     displayName ?: "", handle
+)
+
+data class GenericPostAttributes(
+    val feedPost: FeedPost,
+    val uri: String,
+    val cid: String,
 )

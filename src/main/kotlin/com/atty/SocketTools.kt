@@ -34,7 +34,12 @@ fun Socket.waitForStringInput(): String {
     return selectionString
 }
 
-fun Socket.waitForSelectionChoice(numberOfOptions: Int, canQuit: Boolean = true, charset: Charset = Charsets.UTF_8): Int {
+fun Socket.waitForSelectionChoice(
+    numberOfOptions: Int,
+    canQuit: Boolean = true,
+    canSkip: Boolean = false,
+    charset: Charset = Charsets.UTF_8
+): Int {
     val inputStream = BufferedReader(InputStreamReader(getInputStream()))
     val selectionString: String? = try {
         inputStream.readLine()
@@ -46,6 +51,9 @@ fun Socket.waitForSelectionChoice(numberOfOptions: Int, canQuit: Boolean = true,
 
     return if (selectionString.equals("x", ignoreCase = true)) {
         -1
+    } else if (canSkip && selectionString.equals("")) {
+        // TODO (cara): Enums plz this is silly
+        -2
     } else {
         val selectionNumber = selectionString?.toIntOrNull() ?: -1
         if (selectionNumber in 1..numberOfOptions) {

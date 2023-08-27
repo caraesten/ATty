@@ -1,11 +1,11 @@
 package com.atty.libs
 
-import bsky4j.model.bsky.feed.FeedDefsFeedViewPost
 import bsky4j.model.bsky.feed.FeedLike
 import bsky4j.model.bsky.feed.FeedPost
 import bsky4j.model.bsky.feed.FeedRepost
 import bsky4j.model.bsky.graph.GraphFollow
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
+import com.atty.models.GenericPostAttributes
 import com.atty.models.getAuthorAttributes
 import java.net.Socket
 
@@ -29,21 +29,29 @@ class NotificationReader (
             val record = notif.record
             when (record) {
                 is FeedPost -> {
-                    PostReader(notif.author.getAuthorAttributes(), record, socket).readPost()
+                    PostReader(notif.author.getAuthorAttributes(), record, bsky, socket).readPost()
                 }
                 is FeedRepost -> {
                     socket.getOutputStream().write(
                         "\n ${notif.author.displayName} (${notif.author.handle}) Reposted:\n".toByteArray()
                     )
                     val post = posts.find { it.uri == record.subject.uri }!!
-                    PostReader(notif.author.getAuthorAttributes(), post.record as FeedPost, socket).readPost(PostContext.AsNotification)
+                    val feedPost = post.record as FeedPost
+                    PostReader(
+                        notif.author.getAuthorAttributes(),
+                        feedPost,
+                        bsky,
+                        socket,
+                        genericPostAttributes = GenericPostAttributes(
+                            feedPost, post.uri, post.cid
+                        )).readPost(PostContext.AsNotification)
                 }
                 is FeedLike -> {
                     socket.getOutputStream().write(
                         "\n ${notif.author.displayName} (${notif.author.handle}) Liked:\n".toByteArray()
                     )
                     val post = posts.find { it.uri == record.subject.uri }!!
-                    PostReader(notif.author.getAuthorAttributes(), post.record as FeedPost, socket).readPost(PostContext.AsNotification)
+                    PostReader(notif.author.getAuthorAttributes(), post.record as FeedPost, bsky, socket).readPost(PostContext.AsNotification)
                 }
                 is GraphFollow -> {
                     socket.getOutputStream().write(
