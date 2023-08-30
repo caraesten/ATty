@@ -1,6 +1,5 @@
 package com.atty
 
-import com.atty.models.AtConfig
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import java.io.File
@@ -50,7 +49,7 @@ class TelnetServerImpl(port: Int,
                 // Supports 50 connections in the queue, is this too many?
                 val socket = server.accept()
                 socket.soTimeout = SOCKET_TIMEOUT_MILLIS.toInt()
-                activeConnectionDeque.add(AtReaderThread(socket, AtConfig("Welcome to Bluesky"), { connection, reason ->
+                activeConnectionDeque.add(AtReaderThread(socket, { connection, reason ->
                     connectionListener.onDisconnect(socket.inetAddress, reason)
                     cleanupThread.submit {
                         activeConnectionDeque.remove(connection)

@@ -1,28 +1,34 @@
 package com.atty.libs
 
-import bsky4j.ATProtocolException
 import bsky4j.BlueskyFactory
 import bsky4j.api.entity.atproto.server.ServerCreateSessionRequest
-import bsky4j.api.entity.bsky.feed.FeedGetPostsRequest
-import bsky4j.api.entity.bsky.feed.FeedGetTimelineRequest
-import bsky4j.api.entity.bsky.feed.FeedLikeRequest
-import bsky4j.api.entity.bsky.feed.FeedPostRequest
-import bsky4j.api.entity.bsky.feed.FeedRepostRequest
+import bsky4j.api.entity.bsky.feed.*
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest
 import bsky4j.domain.Service
 import bsky4j.model.atproto.repo.RepoStrongRef
 import bsky4j.model.bsky.feed.FeedDefsFeedViewPost
 import bsky4j.model.bsky.feed.FeedDefsPostView
-import bsky4j.model.bsky.feed.FeedPost
 import bsky4j.model.bsky.feed.FeedPostReplyRef
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
-import com.atty.AtReaderThread
 import com.atty.models.GenericPostAttributes
+import com.atty.models.PendingPost
+
+interface BlueskyReadClient {
+    fun getHomeTimeline(): List<FeedDefsFeedViewPost>
+    fun getNotificationsTimeline(): List<NotificationListNotificationsNotification>
+    fun fetchPosts(uris: List<String>): List<FeedDefsPostView>
+}
+
+interface BlueskyWriteClient {
+    fun sendPost(post: PendingPost)
+    fun repost(genericPostAttributes: GenericPostAttributes)
+    fun like(genericPostAttributes: GenericPostAttributes)
+}
 
 class BlueskyClient (
     username: String,
     password: String
-) {
+) : BlueskyReadClient, BlueskyWriteClient {
     private val bskyFactory = BlueskyFactory.getInstance(Service.BSKY_SOCIAL.uri)
     private val accessJwt: String
 
@@ -38,21 +44,21 @@ class BlueskyClient (
         accessJwt = response.get().accessJwt
     }
 
-    fun getHomeTimeline(): List<FeedDefsFeedViewPost> {
+    override fun getHomeTimeline(): List<FeedDefsFeedViewPost> {
         val response = bskyFactory.feed().getTimeline(
             FeedGetTimelineRequest.builder().accessJwt(accessJwt).limit(POST_LIMIT).build()
         )
         return response.get().feed
     }
 
-    fun getNotificationsTimeline(): List<NotificationListNotificationsNotification> {
+    override fun getNotificationsTimeline(): List<NotificationListNotificationsNotification> {
         val response = bskyFactory.notification().listNotifications(
             NotificationListNotificationsRequest.builder().accessJwt(accessJwt).limit(POST_LIMIT).build()
         )
         return response.get().notifications
     }
 
-    fun fetchPosts(uris: List<String>): List<FeedDefsPostView> {
+    override fun fetchPosts(uris: List<String>): List<FeedDefsPostView> {
         val response = bskyFactory.feed().getPosts(
             FeedGetPostsRequest
                 .builder()
@@ -63,7 +69,7 @@ class BlueskyClient (
         return response.get().posts
     }
 
-    fun sendPost(post: PendingPost) {
+    override fun sendPost(post: PendingPost) {
         val builder = FeedPostRequest.builder()
             .accessJwt(accessJwt)
         if (post.inReplyTo != null) {
@@ -83,14 +89,14 @@ class BlueskyClient (
         )
     }
 
-    fun repost(genericPostAttributes: GenericPostAttributes) {
+    override fun repost(genericPostAttributes: GenericPostAttributes) {
         bskyFactory.feed().repost(FeedRepostRequest.builder()
             .accessJwt(accessJwt)
             .subject(RepoStrongRef(genericPostAttributes.uri, genericPostAttributes.cid))
             .build())
     }
 
-    fun like(genericPostAttributes: GenericPostAttributes) {
+    override fun like(genericPostAttributes: GenericPostAttributes) {
         bskyFactory.feed().like(FeedLikeRequest.builder()
             .accessJwt(accessJwt)
             .subject(RepoStrongRef(genericPostAttributes.uri, genericPostAttributes.cid))

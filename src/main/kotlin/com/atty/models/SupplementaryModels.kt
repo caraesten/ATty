@@ -22,3 +22,8 @@ data class GenericPostAttributes(
     val uri: String,
     val cid: String,
 )
+
+data class PendingPost(
+    val text: String,
+    val inReplyTo: GenericPostAttributes?
+)
