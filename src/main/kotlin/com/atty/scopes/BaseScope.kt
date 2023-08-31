@@ -1,6 +1,5 @@
 package com.atty.scopes
 
-import com.atty.Constants
 import com.atty.DisconnectReason
 import com.atty.reverseCase
 import java.io.BufferedReader
@@ -8,6 +7,20 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.net.Socket
 import java.nio.charset.Charset
+
+data class IntSelection(
+    val isQuit: Boolean = false,
+    val isSkip: Boolean = false,
+    val integer: Int
+)
+
+object Constants {
+    const val ASCII_LF = 10
+    const val ERROR_INVALID_SELECTION_QUIT = "Pick an option, or X to quit."
+    const val ERROR_INVALID_SELECTION = "Pick an option."
+    const val ERROR_STRING_TOO_LONG = "Input is too long."
+    const val ERROR_BLUESKY_CONNECTION = "Bluesky not responding!"
+}
 
 abstract class BaseScope(
     val socket: Socket,
@@ -28,7 +41,7 @@ abstract class BaseScope(
         socket.getOutputStream().write(bytesToClearScreen)
     }
 
-    fun waitForStringInput(isCommodore: Boolean = false): String {
+    fun waitForStringInput(isCommodore: Boolean = false, maxLength: Int = 300): String {
         val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
         val selectionString: String = try {
             inputStream.readLine()
@@ -38,7 +51,12 @@ abstract class BaseScope(
             ""
         }
 
-        return selectionString.run { if (isCommodore) this.reverseCase() else this }
+        return if (selectionString.length > maxLength) {
+            writeUi(Constants.ERROR_STRING_TOO_LONG)
+            waitForStringInput(isCommodore, maxLength)
+        } else {
+            selectionString.run { if (isCommodore) this.reverseCase() else this }
+        }
     }
 
     fun waitForSelectionChoice(
@@ -46,7 +64,7 @@ abstract class BaseScope(
         canQuit: Boolean = true,
         canSkip: Boolean = false,
         charset: Charset = Charsets.UTF_8
-    ): Int {
+    ): IntSelection {
         val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
         val selectionString: String? = try {
             inputStream.readLine()
@@ -57,17 +75,16 @@ abstract class BaseScope(
         }
 
         return if (selectionString.equals("x", ignoreCase = true)) {
-            -1
+            IntSelection(isQuit = true, isSkip = false, integer = -1)
         } else if (canSkip && selectionString.equals("")) {
-            // TODO (cara): Enums plz this is silly
-            -2
+            IntSelection(isQuit = false, isSkip = true, integer = -2)
         } else {
             val selectionNumber = selectionString?.toIntOrNull() ?: -1
             if (selectionNumber in 1..numberOfOptions) {
-                selectionNumber
+                IntSelection(isQuit = false, isSkip = false, integer = selectionNumber)
             } else {
-                socket.getOutputStream().write(
-                    (if (canQuit) Constants.ERROR_INVALID_SELECTION_QUIT else Constants.ERROR_INVALID_SELECTION).toByteArray(charset)
+                writeUi(
+                    (if (canQuit) Constants.ERROR_INVALID_SELECTION_QUIT else Constants.ERROR_INVALID_SELECTION)
                 )
                 waitForSelectionChoice(numberOfOptions)
             }
@@ -93,11 +110,11 @@ abstract class BaseScope(
     }
 
     fun writePrompt(text: String = "", isCommodore: Boolean = false) {
-        val string = "\r\n $text".run {
+        val string = "\r\n$text".run {
             if (isCommodore) this.reverseCase() else this
         }
         socket.getOutputStream().write(
-            "$string>".toByteArray()
+            "$string > ".toByteArray()
         )
     }
 }

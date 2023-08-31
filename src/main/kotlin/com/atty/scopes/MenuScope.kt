@@ -1,5 +1,6 @@
 package com.atty.scopes
 
+import bsky4j.ATProtocolException
 import com.atty.BskyOptions
 import com.atty.DisconnectReason
 import com.atty.OptionItem
@@ -22,22 +23,47 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
             try {
                 socket.getOutputStream().write(bskyOptions.toMenuString().toByteArray())
                 val selectedMenuItem = waitForSelectionChoice(bskyOptions.size)
-                if (selectedMenuItem == -1) {
+                if (selectedMenuItem.isQuit) {
                     disconnectHandler(DisconnectReason.GRACEFUL)
                     return
                 }
-                when (selectedMenuItem) {
-                    BskyOptions.HOME_TIMELINE.choice -> {
-                        val feed = blueskyClient.getHomeTimeline()
-                        HomeTimelineScope(feed, blueskyClient, socket, isCommodore, threadProvider, disconnectHandler).apply(onHomeSelected)
+                try {
+                    when (selectedMenuItem.integer) {
+                        BskyOptions.HOME_TIMELINE.choice -> {
+                            val feed = blueskyClient.getHomeTimeline()
+                            HomeTimelineScope(
+                                feed,
+                                blueskyClient,
+                                socket,
+                                isCommodore,
+                                threadProvider,
+                                disconnectHandler
+                            ).apply(onHomeSelected)
+                        }
+                        BskyOptions.NOTIFICATIONS_TIMELINE.choice -> {
+                            val notifications = blueskyClient.getNotificationsTimeline()
+                            NotificationTimelineScope(
+                                notifications,
+                                blueskyClient,
+                                socket,
+                                isCommodore,
+                                threadProvider,
+                                disconnectHandler
+                            ).apply(onNotificationsSelected)
+                        }
+                        BskyOptions.POST_SKEET.choice -> {
+                            CreatePostScope(
+                                null,
+                                blueskyClient,
+                                socket,
+                                disconnectHandler,
+                                isCommodore,
+                                threadProvider
+                            ).apply(onPostSkeetSelected)
+                        }
                     }
-                    BskyOptions.NOTIFICATIONS_TIMELINE.choice -> {
-                        val notifications = blueskyClient.getNotificationsTimeline()
-                        NotificationTimelineScope(notifications, blueskyClient, socket, isCommodore, threadProvider, disconnectHandler).apply(onNotificationsSelected)
-                    }
-                    BskyOptions.POST_SKEET.choice -> {
-                        CreatePostScope(null, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onPostSkeetSelected)
-                    }
+                } catch (e: ATProtocolException) {
+                    writeUi(Constants.ERROR_BLUESKY_CONNECTION)
                 }
             } catch (ex: Throwable) { // TODO: be more specific
                 ex.printStackTrace()
