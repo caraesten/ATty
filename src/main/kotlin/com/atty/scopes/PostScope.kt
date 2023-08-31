@@ -22,18 +22,18 @@ class PostScope (
     disconnectHandler: (DisconnectReason) -> Unit) :
     BaseLoggedInScope(blueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
 
-    fun readPost(context: PostContext = PostContext.AsPost, onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
+    fun readPost(context: PostContext = PostContext.AsPost, onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onQuote: CreateQuoteScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
         writeAppText(
             "${author.displayName} (${author.handle}) \r\n ${feedPost.text}"
         )
         if (context == PostContext.AsPost) {
-            readPostActions(onReply, onRepost, onLike)
+            readPostActions(onReply, onRepost, onQuote, onLike)
         } else {
             waitForReturnKey()
         }
     }
 
-    private fun readPostActions(onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
+    private fun readPostActions(onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onQuote: CreateQuoteScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
         val options = "[R]eply Re[P]ost [Q]uote [L]ike"
         writeUi(options)
         var stringIn = waitForStringInput()
@@ -50,7 +50,7 @@ class PostScope (
                     CreateRepostScope(genericPostAttributes!!, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onRepost)
                 }
                 'Q' -> {
-
+                    CreateQuoteScope(genericPostAttributes!!, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onQuote)
                 }
                 'L' -> {
                     CreateLikeScope(genericPostAttributes!!, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onLike)

@@ -25,5 +25,6 @@ data class GenericPostAttributes(
 
 data class PendingPost(
     val text: String,
-    val inReplyTo: GenericPostAttributes?
+    val inReplyTo: GenericPostAttributes?,
+    val embed: GenericPostAttributes? = null
 )

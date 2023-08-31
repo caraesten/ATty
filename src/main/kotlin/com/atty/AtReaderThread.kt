@@ -42,6 +42,11 @@ class AtReaderThread(private val clientSocket: Socket,
                 writeClient().repost(genericPostAttributes)
                 showReposted()
             }
+            val performQuote: CreateQuoteScope.() -> Unit = {
+                val pending = getPost()
+                writeClient().sendPost(pending)
+                showQuoted()
+            }
             val performLike: CreateLikeScope.() -> Unit = {
                 writeClient().like(genericPostAttributes)
                 showLiked()
@@ -50,12 +55,12 @@ class AtReaderThread(private val clientSocket: Socket,
             readMenu(
                 onHomeSelected = {
                     forEachPost {
-                        readPost(PostContext.AsPost, performReply, performRepost, performLike)
+                        readPost(PostContext.AsPost, performReply, performRepost, performQuote, performLike)
                     }
                 },
                 onNotificationsSelected = {
                     forEachPost {
-                        readPost(PostContext.AsNotification, performReply, performRepost, performLike)
+                        readPost(PostContext.AsNotification, performReply, performRepost, performQuote, performLike)
                     }
                 },
                 onPostSkeetSelected = {

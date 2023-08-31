@@ -6,6 +6,7 @@ import bsky4j.api.entity.bsky.feed.*
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest
 import bsky4j.domain.Service
 import bsky4j.model.atproto.repo.RepoStrongRef
+import bsky4j.model.bsky.embed.EmbedRecord
 import bsky4j.model.bsky.feed.FeedDefsFeedViewPost
 import bsky4j.model.bsky.feed.FeedDefsPostView
 import bsky4j.model.bsky.feed.FeedPostReplyRef
@@ -82,6 +83,11 @@ class BlueskyClient (
                     parent = refToPost
                 }
             )
+        }
+        if (post.embed != null) {
+            val embedRecord = EmbedRecord()
+            embedRecord.record = RepoStrongRef(post.embed.uri, post.embed.cid)
+            builder.embed(embedRecord)
         }
         builder.text(post.text)
         val response = bskyFactory.feed().post(
