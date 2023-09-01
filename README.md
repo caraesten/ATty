@@ -1,6 +1,9 @@
 # ATty
 ### A telnet client for Bluesky
 
+## Live install
+The client is currently running live at `bsky.tel`, and you should be able to telnet into it from any device that supports telnet!
+
 ## Installation
  - Make sure you have a JDK installed. I recommend Temurin, install it [here](https://adoptium.net/temurin/releases/).
  - Clone the repo using git (or just download it as a zip file)
