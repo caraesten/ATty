@@ -17,7 +17,12 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    implementation("com.github.uakihir0:bsky4j:0.5.2")
+    implementation("com.github.uakihir0:bsky4j:0.5.2") {
+        exclude("com.github.uakihir0", "JLogger")
+        exclude("com.github.uakihir0", "JHttpClient")
+    }
+    implementation("com.github.uakihir0:JLogger:1.4")
+    implementation("com.github.uakihir0:JHttpClient:1.1.9")
 }
 
 tasks.test {
