@@ -51,7 +51,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
                                 disconnectHandler
                             ).apply(onNotificationsSelected)
                         }
-                        BskyOptions.POST_SKEET.choice -> {
+                        BskyOptions.CREATE_POST.choice -> {
                             CreatePostScope(
                                 null,
                                 blueskyClient,
@@ -76,7 +76,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
         val bskyOptions = listOf(
             OptionItem("Home Timeline", BskyOptions.HOME_TIMELINE),
             OptionItem("Notifications Timeline", BskyOptions.NOTIFICATIONS_TIMELINE),
-            OptionItem("Post Skeet", BskyOptions.POST_SKEET)
+            OptionItem("Create Post", BskyOptions.CREATE_POST)
         )
     }
 

@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 enum class BskyOptions(val choice: Int) {
     HOME_TIMELINE(1),
     NOTIFICATIONS_TIMELINE(2),
-    POST_SKEET(3)
+    CREATE_POST(3)
 }
 
 data class OptionItem(val optionString: String, val option: BskyOptions)
