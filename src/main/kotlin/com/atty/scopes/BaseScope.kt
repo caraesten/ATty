@@ -2,6 +2,7 @@ package com.atty.scopes
 
 import com.atty.DisconnectReason
 import com.atty.reverseCase
+import com.atty.scopes.Constants.ADVANCE_CHARS
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -16,6 +17,9 @@ data class IntSelection(
 
 object Constants {
     const val ASCII_LF = 10
+    const val ASCII_SPACE = 32
+    const val ASCII_CR = 13
+    val ADVANCE_CHARS = setOf(ASCII_LF, ASCII_SPACE, ASCII_CR)
     const val ERROR_INVALID_SELECTION_QUIT = "Pick an option, or X to quit."
     const val ERROR_INVALID_SELECTION = "Pick an option."
     const val ERROR_STRING_TOO_LONG = "Input is too long."
@@ -28,7 +32,7 @@ abstract class BaseScope(
     val disconnectHandler: (DisconnectReason) -> Unit
 ) {
     fun waitForReturnKey() {
-        while (socket.getInputStream().read() != Constants.ASCII_LF) {
+        while (!ADVANCE_CHARS.contains(socket.getInputStream().read())) {
             // do nothing
         }
     }

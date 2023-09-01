@@ -5,7 +5,7 @@ import com.atty.DisconnectReason
 import com.atty.libs.BlueskyClient
 import java.net.Socket
 
-const val WELCOME_TEXT = "WELCOME TO BLUESKY\r\n"
+const val WELCOME_TEXT = "WELCOME TO BSKY.TEL,\r\nTHE TELNET BLUESKY CLIENT\r\n"
 
 class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandler: (DisconnectReason) -> Unit) : BaseScope(socket, threadProvider, disconnectHandler) {
     fun performLogin(block: MenuScope.() -> Unit) {
