@@ -28,3 +28,20 @@ data class PendingPost(
     val inReplyTo: GenericPostAttributes?,
     val embed: GenericPostAttributes? = null
 )
+
+interface Facet {
+    val startIndex: Int
+    val endIndex: Int
+}
+
+data class Mention(
+    val username: String,
+    override val startIndex: Int,
+    override val endIndex: Int
+) : Facet
+
+data class Link(
+    val address: String,
+    override val startIndex: Int,
+    override val endIndex: Int
+) : Facet

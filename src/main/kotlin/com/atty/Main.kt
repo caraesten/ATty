@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
 
     // Don't log anyone's token
     // TODO: write a pr to bsky4j to configure this via the factory
-    Logger.getLogger(HttpClientImpl::class.java).logLevel = Logger.LogLevel.ERROR
+    // Logger.getLogger(HttpClientImpl::class.java).logLevel = Logger.LogLevel.ERROR
 
     val server = TelnetServerImpl(port, logFile, object : ConnectionListener {
         override fun onConnect(inetAddress: InetAddress) {

@@ -1,6 +1,7 @@
 package com.atty.libs
 
 import bsky4j.BlueskyFactory
+import bsky4j.api.entity.atproto.identity.IdentityResolveHandleRequest
 import bsky4j.api.entity.atproto.server.ServerCreateSessionRequest
 import bsky4j.api.entity.bsky.feed.*
 import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest
@@ -11,6 +12,10 @@ import bsky4j.model.bsky.feed.FeedDefsFeedViewPost
 import bsky4j.model.bsky.feed.FeedDefsPostView
 import bsky4j.model.bsky.feed.FeedPostReplyRef
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
+import bsky4j.model.bsky.richtext.RichtextFacet
+import bsky4j.model.bsky.richtext.RichtextFacetByteSlice
+import bsky4j.model.bsky.richtext.RichtextFacetLink
+import bsky4j.model.bsky.richtext.RichtextFacetMention
 import com.atty.models.GenericPostAttributes
 import com.atty.models.PendingPost
 
@@ -18,6 +23,7 @@ interface BlueskyReadClient {
     fun getHomeTimeline(): List<FeedDefsFeedViewPost>
     fun getNotificationsTimeline(): List<NotificationListNotificationsNotification>
     fun fetchPosts(uris: List<String>): List<FeedDefsPostView>
+    fun resolveHandle(handle: String): String
 }
 
 interface BlueskyWriteClient {
@@ -70,6 +76,12 @@ class BlueskyClient (
         return response.get().posts
     }
 
+    override fun resolveHandle(handle: String): String {
+        return bskyFactory.identity().resolveHandle(
+            IdentityResolveHandleRequest.builder().handle(handle).build()
+        ).get().did
+    }
+
     override fun sendPost(post: PendingPost) {
         val builder = FeedPostRequest.builder()
             .accessJwt(accessJwt)
@@ -89,6 +101,34 @@ class BlueskyClient (
             embedRecord.record = RepoStrongRef(post.embed.uri, post.embed.cid)
             builder.embed(embedRecord)
         }
+        val mentions = post.text.getMentions()
+        val links = post.text.getLinks().filter { link ->
+            // Filter out any links that are actually just handles. naive, but should work?
+            !mentions.any { (it.startIndex .. it.endIndex).contains(link.startIndex) }
+        }
+        val facets = mentions.map { mention ->
+            val resolvedDid = resolveHandle(mention.username.trimStart('@'))
+            val slice = RichtextFacetByteSlice().apply {
+                byteStart = mention.startIndex
+                byteEnd = mention.endIndex
+            }
+            RichtextFacet().apply {
+                index = slice
+                val facetMention = RichtextFacetMention().apply { did = resolvedDid }
+                features = listOf(facetMention)
+            }
+        } + links.map { link ->
+            val slice = RichtextFacetByteSlice().apply {
+                byteStart = link.startIndex
+                byteEnd = link.endIndex
+            }
+            RichtextFacet().apply {
+                index = slice
+                val facetLink = RichtextFacetLink().apply { uri = link.address }
+                features = listOf(facetLink)
+            }
+        }
+        builder.facets(facets)
         builder.text(post.text)
         val response = bskyFactory.feed().post(
             builder.build()
