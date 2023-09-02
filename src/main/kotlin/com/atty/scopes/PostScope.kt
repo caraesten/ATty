@@ -38,9 +38,13 @@ class PostScope (
         writeUi(options)
         var stringIn = waitForStringInput()
         if (stringIn.isNotEmpty()) {
-            while (stringIn.length != 1 || !validActions.contains(stringIn.uppercase().first())) {
+            while (stringIn.isNotEmpty() && (stringIn.length != 1 || !validActions.contains(stringIn.uppercase().first()))) {
+                writeUi("Invalid option. Enter valid option or enter to continue.")
                 writeUi(options)
                 stringIn = waitForStringInput()
+            }
+            if (stringIn.isEmpty()) {
+                return
             }
             when (stringIn.uppercase().first()) {
                 'R' -> {
