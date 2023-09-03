@@ -1,18 +1,17 @@
 package com.atty.scopes
 
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
-import java.net.Socket
+import io.ktor.network.sockets.*
 
 class CreateRepostScope(
     val genericPostAttributes: GenericPostAttributes,
     blueskyClient: BlueskyReadClient,
-    clientSocket: Socket,
-    disconnectHandler: (DisconnectReason) -> Unit,
-    isCommodore: Boolean,
-    threadProvider: () -> Thread) : BaseLoggedInScope(blueskyClient, clientSocket, isCommodore, threadProvider, disconnectHandler) {
-        fun showReposted() {
+    connection: Connection,
+    disconnectHandler: DisconnectHandler,
+    isCommodore: Boolean) : BaseLoggedInScope(blueskyClient, connection, isCommodore, disconnectHandler) {
+        suspend fun showReposted() {
             writeUi("Reposted")
         }
     }

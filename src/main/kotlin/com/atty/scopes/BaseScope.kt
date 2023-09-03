@@ -1,12 +1,13 @@
 package com.atty.scopes
 
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.reverseCase
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.Socket
+import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.isActive
+import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import kotlin.coroutines.coroutineContext
 
 data class IntSelection(
     val isQuit: Boolean = false,
@@ -22,32 +23,34 @@ object Constants {
 }
 
 abstract class BaseScope(
-    val socket: Socket,
-    val threadProvider: () -> Thread,
-    val disconnectHandler: (DisconnectReason) -> Unit
+    val connection: Connection,
+    val disconnectHandler: DisconnectHandler
 ) {
-    fun waitForReturnKey() {
-        val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
-        inputStream.readLine()
+    suspend fun waitForReturnKey() {
+        val carriage = '\r'.code.toByte()
+        val newline = '\n'.code.toByte()
+
+        while (coroutineContext.isActive) {
+            assertCanRead()
+            when (connection.input.readByte()) {
+                carriage -> if (connection.input.availableForRead > 0 && connection.input.readByte() == newline) break
+                newline -> break
+                else -> Unit
+            }
+        }
     }
 
-    fun clearScreen(charset: Charset = Charsets.UTF_8) {
+    suspend fun clearScreen(charset: Charset = Charsets.UTF_8) {
         if (charset != Charsets.UTF_8) {
             println("Unsafe clear screen!")
         }
-        val bytesToClearScreen = "\u001b[2J\u001b[H".toByteArray(Charsets.UTF_8)
-        socket.getOutputStream().write(bytesToClearScreen)
+        val bytesToClearScreen = "\u001b[2J\u001b[H"
+        connection.output.writeStringUtf8(bytesToClearScreen)
     }
 
-    fun waitForStringInput(isCommodore: Boolean = false, maxLength: Int = 300): String {
-        val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
-        val selectionString: String = try {
-            inputStream.readLine()
-        } catch (ex: IllegalArgumentException) {
-            ""
-        } catch (ex: IOException) {
-            ""
-        }
+    suspend fun waitForStringInput(isCommodore: Boolean = false, maxLength: Int = 300): String {
+        assertCanRead()
+        val selectionString: String = connection.input.readUTF8Line().orEmpty()
 
         return if (selectionString.length > maxLength) {
             writeUi(Constants.ERROR_STRING_TOO_LONG)
@@ -57,20 +60,14 @@ abstract class BaseScope(
         }
     }
 
-    fun waitForSelectionChoice(
+    suspend fun waitForSelectionChoice(
         numberOfOptions: Int,
         canQuit: Boolean = true,
         canSkip: Boolean = false,
         charset: Charset = Charsets.UTF_8
     ): IntSelection {
-        val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
-        val selectionString: String? = try {
-            inputStream.readLine()
-        } catch (ex: IllegalArgumentException) {
-            ""
-        } catch (ex: IOException) {
-            ""
-        }
+        assertCanRead()
+        val selectionString: String? = connection.input.readUTF8Line()
 
         return if (selectionString.equals("x", ignoreCase = true)) {
             IntSelection(isQuit = true, isSkip = false, integer = -1)
@@ -89,30 +86,34 @@ abstract class BaseScope(
         }
     }
 
-    fun writeUi(text: String, isCommodore: Boolean = false) {
+    suspend fun writeUi(text: String, isCommodore: Boolean = false) {
         val string = "\r\n [$text] \r\n".run {
             if (isCommodore) this.reverseCase() else this
         }
-        socket.getOutputStream().write(
-            string.toByteArray()
+        connection.output.writeStringUtf8(
+            string
         )
     }
 
-    fun writeAppText(text: String, isCommodore: Boolean = false) {
+    suspend fun writeAppText(text: String, isCommodore: Boolean = false) {
         val string = "\r\n $text \r\n".run {
             if (isCommodore) this.reverseCase() else this
         }
-        socket.getOutputStream().write(
-            string.toByteArray()
+        connection.output.writeStringUtf8(
+            string
         )
     }
 
-    fun writePrompt(text: String = "", isCommodore: Boolean = false) {
+    suspend fun writePrompt(text: String = "", isCommodore: Boolean = false) {
         val string = "\r\n$text".run {
             if (isCommodore) this.reverseCase() else this
         }
-        socket.getOutputStream().write(
-            "$string > ".toByteArray()
+        connection.output.writeStringUtf8(
+            "$string > "
         )
+    }
+
+    private fun assertCanRead() {
+        require(!connection.input.isClosedForRead) { "Input connection is closed" }
     }
 }

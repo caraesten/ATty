@@ -5,21 +5,20 @@ import bsky4j.model.bsky.feed.FeedPost
 import bsky4j.model.bsky.feed.FeedRepost
 import bsky4j.model.bsky.graph.GraphFollow
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
 import com.atty.models.getAuthorAttributes
-import java.net.Socket
+import io.ktor.network.sockets.*
 
 class NotificationTimelineScope (val notifs: List<NotificationListNotificationsNotification>,
                                  blueskyClient: BlueskyReadClient,
-                                 socket: Socket,
+                                 connection: Connection,
                                  isCommodore: Boolean,
-                                 threadProvider: () -> Thread,
-                                 disconnectHandler: (DisconnectReason) -> Unit) :
-    BaseLoggedInScope(blueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
+                                 disconnectHandler: DisconnectHandler) :
+    BaseLoggedInScope(blueskyClient, connection, isCommodore, disconnectHandler) {
 
-    fun forEachPost(block: PostScope.() -> Unit) {
+    suspend fun forEachPost(block: suspend PostScope.() -> Unit) {
             val prefetchPosts = notifs
                 .filter { it.record is FeedRepost || it.record is FeedLike }
                 .map {
@@ -42,8 +41,8 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                                 notif.uri,
                                 notif.cid
                             ),
-                            blueskyClient, socket, isCommodore, threadProvider, disconnectHandler
-                        ).apply(block)
+                            blueskyClient, connection, isCommodore, disconnectHandler
+                        ).apply { block() }
                     }
                     is FeedRepost -> {
                         writeAppText(
@@ -59,8 +58,8 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                                 notif.uri,
                                 notif.cid
                             ),
-                            blueskyClient, socket, isCommodore, threadProvider, disconnectHandler
-                        ).apply(block)
+                            blueskyClient, connection, isCommodore, disconnectHandler
+                        ).apply { block() }
                     }
                     is FeedLike -> {
                         writeAppText(
@@ -76,8 +75,8 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                                 notif.uri,
                                 notif.cid
                             ),
-                            blueskyClient, socket, isCommodore, threadProvider, disconnectHandler
-                        ).apply(block)
+                            blueskyClient, connection, isCommodore, disconnectHandler
+                        ).apply { block() }
                     }
                     is GraphFollow -> {
                         writeAppText(

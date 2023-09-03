@@ -2,21 +2,20 @@ package com.atty.scopes
 
 import bsky4j.model.bsky.feed.FeedDefsPostView
 import bsky4j.model.bsky.feed.FeedPost
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
 import com.atty.models.getAuthorAttributes
-import java.net.Socket
+import io.ktor.network.sockets.*
 
 class ReplyContextScope(
     val replies: List<FeedDefsPostView>,
     blueskyClient: BlueskyReadClient,
-    socket: Socket,
+    connection: Connection,
     isCommodore: Boolean,
-    threadProvider: () -> Thread,
-    disconnectHandler: (DisconnectReason) -> Unit) :
-    BaseLoggedInScope(blueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
-    fun forEachPost(block: PostScope.() -> Unit) {
+    disconnectHandler: DisconnectHandler) :
+    BaseLoggedInScope(blueskyClient, connection, isCommodore, disconnectHandler) {
+    suspend fun forEachPost(block: suspend PostScope.() -> Unit) {
         replies.forEach { threadItem ->
             val record = threadItem.record
             if (record is FeedPost) { // this should always be true
@@ -25,9 +24,9 @@ class ReplyContextScope(
                     record,
                     GenericPostAttributes(record, threadItem.uri, threadItem.cid),
                     blueskyClient,
-                    socket,
-                    isCommodore, threadProvider, disconnectHandler
-                ).apply(block)
+                    connection,
+                    isCommodore, disconnectHandler
+                ).apply { block() }
             }
         }
     }

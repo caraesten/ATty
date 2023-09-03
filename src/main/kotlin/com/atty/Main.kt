@@ -1,8 +1,9 @@
 package com.atty
 
+import io.ktor.network.sockets.*
+import kotlinx.coroutines.runBlocking
 import net.socialhub.http.HttpClientImpl
 import net.socialhub.logger.Logger
-import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -17,17 +18,21 @@ fun main(args: Array<String>) {
     Logger.getLogger(HttpClientImpl::class.java).logLevel = Logger.LogLevel.ERROR
 
     val server = TelnetServerImpl(port, logFile, object : ConnectionListener {
-        override fun onConnect(inetAddress: InetAddress) {
+        override fun onConnect(inetAddress: SocketAddress) {
             println("Received connection at: ${ZonedDateTime.now().format(timeFormatter)}")
         }
 
-        override fun onDisconnect(inetAddress: InetAddress, reason: DisconnectReason) {
+        override fun onDisconnect(inetAddress: SocketAddress, reason: DisconnectReason) {
             println("Lost connection at: ${ZonedDateTime.now().format(timeFormatter)} due to: $reason")
         }
     })
 
-    server.start()
-    while (server.isRunning()) {
-        // do nothing
+    runBlocking {
+        try {
+            server.start()
+            server.join()
+        } finally {
+            server.stop()
+        }
     }
 }

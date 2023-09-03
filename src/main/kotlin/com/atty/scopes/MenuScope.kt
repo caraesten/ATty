@@ -1,27 +1,27 @@
 package com.atty.scopes
 
 import bsky4j.ATProtocolException
-import com.atty.BskyOptions
-import com.atty.DisconnectReason
-import com.atty.OptionItem
+import com.atty.*
 import com.atty.libs.BlueskyClient
 import com.atty.libs.BlueskyWriteClient
-import com.atty.reverseCase
-import java.net.Socket
+import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.isActive
+import kotlin.coroutines.coroutineContext
 
-class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, isCommodore: Boolean, threadProvider: () -> Thread, disconnectHandler: (DisconnectReason) -> Unit) : BaseLoggedInScope(fullBlueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
+class MenuScope(private val fullBlueskyClient: BlueskyClient, connection: Connection, isCommodore: Boolean, disconnectHandler: DisconnectHandler) : BaseLoggedInScope(fullBlueskyClient, connection, isCommodore, disconnectHandler) {
 
     // Don't use this from in here; it's meant to be accessible to functions from this scope
     fun writeClient(): BlueskyWriteClient = fullBlueskyClient
 
-    fun readMenu(
-        onHomeSelected: HomeTimelineScope.() -> Unit,
-        onNotificationsSelected: NotificationTimelineScope.() -> Unit,
-        onPostSkeetSelected: CreatePostScope.() -> Unit,
+    suspend fun readMenu(
+        onHomeSelected: suspend HomeTimelineScope.() -> Unit,
+        onNotificationsSelected: suspend NotificationTimelineScope.() -> Unit,
+        onPostSkeetSelected: suspend CreatePostScope.() -> Unit,
     ) {
-        while (!threadProvider().isInterrupted) {
+        while (coroutineContext.isActive) {
             try {
-                socket.getOutputStream().write(bskyOptions.toMenuString().toByteArray())
+                connection.output.writeStringUtf8(bskyOptions.toMenuString())
                 val selectedMenuItem = waitForSelectionChoice(bskyOptions.size)
                 if (selectedMenuItem.isQuit) {
                     disconnectHandler(DisconnectReason.GRACEFUL)
@@ -34,32 +34,29 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
                             HomeTimelineScope(
                                 feed,
                                 blueskyClient,
-                                socket,
+                                connection,
                                 isCommodore,
-                                threadProvider,
                                 disconnectHandler
-                            ).apply(onHomeSelected)
+                            ).apply { onHomeSelected() }
                         }
                         BskyOptions.NOTIFICATIONS_TIMELINE.choice -> {
                             val notifications = blueskyClient.getNotificationsTimeline()
                             NotificationTimelineScope(
                                 notifications,
                                 blueskyClient,
-                                socket,
+                                connection,
                                 isCommodore,
-                                threadProvider,
                                 disconnectHandler
-                            ).apply(onNotificationsSelected)
+                            ).apply { onNotificationsSelected() }
                         }
                         BskyOptions.CREATE_POST.choice -> {
                             CreatePostScope(
                                 null,
                                 blueskyClient,
-                                socket,
+                                connection,
                                 disconnectHandler,
-                                isCommodore,
-                                threadProvider
-                            ).apply(onPostSkeetSelected)
+                                isCommodore
+                            ).apply { onPostSkeetSelected() }
                         }
                     }
                 } catch (e: ATProtocolException) {

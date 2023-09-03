@@ -1,22 +1,22 @@
 package com.atty.scopes
 
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
 import com.atty.models.PendingPost
-import java.net.Socket
+import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
 
 class CreatePostScope(
     val inReplyTo: GenericPostAttributes?,
     blueskyClient: BlueskyReadClient,
-    clientSocket: Socket,
-    disconnectHandler: (DisconnectReason) -> Unit,
-    isCommodore: Boolean,
-    threadProvider: () -> Thread) : BaseLoggedInScope(blueskyClient, clientSocket, isCommodore, threadProvider, disconnectHandler) {
+    connection: Connection,
+    disconnectHandler: DisconnectHandler,
+    isCommodore: Boolean) : BaseLoggedInScope(blueskyClient, connection, isCommodore, disconnectHandler) {
 
-    fun getPost(): PendingPost {
-        socket.getOutputStream().write(
-            "\n>".toByteArray()
+    suspend fun getPost(): PendingPost {
+        connection.output.writeStringUtf8(
+            "\n>"
         )
 
         var inputString = waitForStringInput()
@@ -30,7 +30,7 @@ class CreatePostScope(
         return PendingPost(inputString, inReplyTo)
     }
 
-    fun showPosted() {
+    suspend fun showPosted() {
         writeUi(
             "Sent Post!"
         )
