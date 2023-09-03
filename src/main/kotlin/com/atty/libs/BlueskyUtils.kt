@@ -1,5 +1,6 @@
 package com.atty.libs
 
+import bsky4j.model.bsky.feed.FeedPost
 import com.atty.models.Link
 import com.atty.models.Mention
 
@@ -22,3 +23,5 @@ fun String.getLinks(): List<Link> {
         Link(url, it.range.first, it.range.last + 1)
     }.toList()
 }
+
+fun FeedPost.isReply(): Boolean = this.reply != null && this.reply.parent != null

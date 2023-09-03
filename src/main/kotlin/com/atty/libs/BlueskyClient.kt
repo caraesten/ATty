@@ -8,9 +8,7 @@ import bsky4j.api.entity.bsky.notification.NotificationListNotificationsRequest
 import bsky4j.domain.Service
 import bsky4j.model.atproto.repo.RepoStrongRef
 import bsky4j.model.bsky.embed.EmbedRecord
-import bsky4j.model.bsky.feed.FeedDefsFeedViewPost
-import bsky4j.model.bsky.feed.FeedDefsPostView
-import bsky4j.model.bsky.feed.FeedPostReplyRef
+import bsky4j.model.bsky.feed.*
 import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
 import bsky4j.model.bsky.richtext.RichtextFacet
 import bsky4j.model.bsky.richtext.RichtextFacetByteSlice
@@ -24,6 +22,7 @@ interface BlueskyReadClient {
     fun getNotificationsTimeline(): List<NotificationListNotificationsNotification>
     fun fetchPosts(uris: List<String>): List<FeedDefsPostView>
     fun resolveHandle(handle: String): String
+    fun fetchThread(uri: String, depth: Int): List<FeedDefsPostView>
 }
 
 interface BlueskyWriteClient {
@@ -63,6 +62,33 @@ class BlueskyClient (
             NotificationListNotificationsRequest.builder().accessJwt(accessJwt).limit(POST_LIMIT).build()
         )
         return response.get().notifications
+    }
+
+    override fun fetchThread(uri: String, depth: Int): List<FeedDefsPostView> {
+        val response = bskyFactory.feed().getPostThread(
+            FeedGetPostThreadRequest
+                .builder()
+                .accessJwt(accessJwt)
+                .uri(uri).depth(depth)
+                .build()
+        )
+        return when (val thread = response.get().thread) {
+            is FeedDefsNotFoundPost -> {
+                return emptyList()
+            }
+            is FeedDefsThreadViewPost -> {
+                val posts = mutableListOf<FeedDefsPostView>()
+                var postPointer = thread
+                while (postPointer != null && postPointer is FeedDefsThreadViewPost) {
+                    posts.add(postPointer.post)
+                    postPointer = postPointer.parent
+                }
+                return posts
+            }
+            else -> {
+                emptyList() // probably blocked idk
+            }
+        }
     }
 
     override fun fetchPosts(uris: List<String>): List<FeedDefsPostView> {

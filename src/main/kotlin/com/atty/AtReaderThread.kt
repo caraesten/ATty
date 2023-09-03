@@ -51,17 +51,22 @@ class AtReaderThread(private val clientSocket: Socket,
                 writeClient().like(genericPostAttributes)
                 showLiked()
             }
+            val showContext: ReplyContextScope.() -> Unit = {
+                forEachPost {
+                    readPost(PostContext.AsReply, {}, performReply, performRepost, performQuote, performLike)
+                }
+            }
+
+            val readPostAction: PostScope.() -> Unit = {
+                readPost(PostContext.AsPost, showContext, performReply, performRepost, performQuote, performLike)
+            }
 
             readMenu(
                 onHomeSelected = {
-                    forEachPost {
-                        readPost(PostContext.AsPost, performReply, performRepost, performQuote, performLike)
-                    }
+                    forEachPost(readPostAction)
                 },
                 onNotificationsSelected = {
-                    forEachPost {
-                        readPost(PostContext.AsNotification, performReply, performRepost, performQuote, performLike)
-                    }
+                    forEachPost(readPostAction)
                 },
                 onPostSkeetSelected = {
                     val pendingPost = getPost()
