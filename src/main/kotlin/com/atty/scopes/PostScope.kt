@@ -1,12 +1,12 @@
 package com.atty.scopes
 
 import bsky4j.model.bsky.feed.FeedPost
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.libs.BlueskyReadClient
 import com.atty.libs.isReply
 import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
-import java.net.Socket
+import io.ktor.network.sockets.*
 
 enum class PostContext {
     AsPost, AsNotification, AsReply
@@ -17,13 +17,12 @@ class PostScope (
     val feedPost: FeedPost,
     val genericPostAttributes: GenericPostAttributes,
     blueskyClient: BlueskyReadClient,
-    socket: Socket,
+    connection: Connection,
     isCommodore: Boolean,
-    threadProvider: () -> Thread,
-    disconnectHandler: (DisconnectReason) -> Unit) :
-    BaseLoggedInScope(blueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
+    disconnectHandler: DisconnectHandler) :
+    BaseLoggedInScope(blueskyClient, connection, isCommodore, disconnectHandler) {
 
-    fun readPost(context: PostContext = PostContext.AsPost, onContext: ReplyContextScope.() -> Unit, onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onQuote: CreateQuoteScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
+    suspend fun readPost(context: PostContext = PostContext.AsPost, onContext: suspend ReplyContextScope.() -> Unit, onReply: suspend CreatePostScope.() -> Unit, onRepost: suspend CreateRepostScope.() -> Unit, onQuote: suspend CreateQuoteScope.() -> Unit, onLike: suspend CreateLikeScope.() -> Unit) {
         writeAppText(
             "${if (context == PostContext.AsReply) ">>> " else ""}${author.displayName} (${author.handle}) \r\n ${if (feedPost.isReply()) "Reply: " else ""}${feedPost.text}"
         )
@@ -34,7 +33,7 @@ class PostScope (
         }
     }
 
-    private fun readPostActions(context: PostContext, onContext: ReplyContextScope.() -> Unit, onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onQuote: CreateQuoteScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
+    private suspend fun readPostActions(context: PostContext, onContext: suspend ReplyContextScope.() -> Unit, onReply: suspend CreatePostScope.() -> Unit, onRepost: suspend CreateRepostScope.() -> Unit, onQuote: suspend CreateQuoteScope.() -> Unit, onLike: suspend CreateLikeScope.() -> Unit) {
         val contextOption = "[C]ontext "
         val showContext = feedPost.isReply() && context != PostContext.AsReply
         val options = "${if (showContext) contextOption else ""}[R]eply Re[P]ost [Q]uote [L]ike"
@@ -53,19 +52,19 @@ class PostScope (
             when (stringIn.uppercase().first()) {
                 'C' -> {
                     val replies = blueskyClient.fetchThread(genericPostAttributes.uri, 3)
-                    ReplyContextScope(replies, blueskyClient, socket, isCommodore, threadProvider, disconnectHandler).apply(onContext)
+                    ReplyContextScope(replies, blueskyClient, connection, isCommodore, disconnectHandler).apply { onContext() }
                 }
                 'R' -> {
-                    CreatePostScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onReply)
+                    CreatePostScope(genericPostAttributes, blueskyClient, connection, disconnectHandler, isCommodore).apply { onReply() }
                 }
                 'P' -> {
-                    CreateRepostScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onRepost)
+                    CreateRepostScope(genericPostAttributes, blueskyClient, connection, disconnectHandler, isCommodore).apply { onRepost() }
                 }
                 'Q' -> {
-                    CreateQuoteScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onQuote)
+                    CreateQuoteScope(genericPostAttributes, blueskyClient, connection, disconnectHandler, isCommodore).apply { onQuote() }
                 }
                 'L' -> {
-                    CreateLikeScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onLike)
+                    CreateLikeScope(genericPostAttributes, blueskyClient, connection, disconnectHandler, isCommodore).apply { onLike() }
                 }
             }
         }

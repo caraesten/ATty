@@ -1,30 +1,29 @@
 package com.atty.scopes
 
-import com.atty.DisconnectReason
+import com.atty.DisconnectHandler
 import com.atty.libs.BlueskyReadClient
-import java.net.Socket
+import io.ktor.network.sockets.*
 
 abstract class BaseLoggedInScope(
     val blueskyClient: BlueskyReadClient,
-    clientSocket: Socket,
+    connection: Connection,
     val isCommodore: Boolean,
-    threadProvider: () -> Thread,
-    disconnectHandler: (DisconnectReason) -> Unit,
-) : BaseScope(clientSocket, threadProvider, disconnectHandler) {
+    disconnectHandler: DisconnectHandler,
+) : BaseScope(connection, disconnectHandler) {
 
-    fun waitForStringInput(): String {
+    suspend fun waitForStringInput(): String {
         return waitForStringInput(isCommodore)
     }
 
-    fun writeUi(text: String) {
+    suspend fun writeUi(text: String) {
         writeUi(text, isCommodore)
     }
 
-    fun writeAppText(text: String) {
+    suspend fun writeAppText(text: String) {
         writeAppText(text, isCommodore)
     }
 
-    fun writePrompt(text: String = "") {
+    suspend fun writePrompt(text: String = "") {
         writePrompt(text, isCommodore)
     }
 }

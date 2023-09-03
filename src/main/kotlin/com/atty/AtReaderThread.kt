@@ -2,8 +2,10 @@ package com.atty
 
 import com.atty.libs.BlueskyClient
 import com.atty.scopes.*
-import java.net.Socket
+import io.ktor.network.sockets.*
+import kotlinx.coroutines.cancel
 import java.nio.charset.Charset
+import kotlin.coroutines.coroutineContext
 
 
 enum class BskyOptions(val choice: Int) {
@@ -16,48 +18,48 @@ data class OptionItem(val optionString: String, val option: BskyOptions)
 
 interface AtConnection {
     val startTime: Long
-    fun timeoutConnection()
+    suspend fun timeoutConnection()
 }
 
-class AtReaderThread(private val clientSocket: Socket,
-                   private val onDisconnect: (AtReaderThread, DisconnectReason) -> Unit,
-                   private val charset: Charset = Charsets.UTF_8) : Thread(), AtConnection {
+class AtReaderThread(private val connection: Connection,
+                     private val onDisconnect: (AtReaderThread, DisconnectReason) -> Unit,
+                     private val charset: Charset = Charsets.UTF_8) : AtConnection {
 
     lateinit var blueskyClient: BlueskyClient
 
     override val startTime = System.currentTimeMillis()
 
-    override fun timeoutConnection() {
+    override suspend fun timeoutConnection() {
         performDisconnect(DisconnectReason.TIMEOUT)
     }
 
-    override fun run() {
-        LoginScope(clientSocket, { currentThread() }, ::performDisconnect).performLogin {
-            val performReply: CreatePostScope.() -> Unit = {
+    suspend fun run() {
+        LoginScope(connection, ::performDisconnect).performLogin {
+            val performReply: suspend CreatePostScope.() -> Unit = {
                 val pending = getPost()
                 writeClient().sendPost(pending)
                 showPosted()
             }
-            val performRepost: CreateRepostScope.() -> Unit = {
+            val performRepost: suspend CreateRepostScope.() -> Unit = {
                 writeClient().repost(genericPostAttributes)
                 showReposted()
             }
-            val performQuote: CreateQuoteScope.() -> Unit = {
+            val performQuote: suspend CreateQuoteScope.() -> Unit = {
                 val pending = getPost()
                 writeClient().sendPost(pending)
                 showQuoted()
             }
-            val performLike: CreateLikeScope.() -> Unit = {
+            val performLike: suspend CreateLikeScope.() -> Unit = {
                 writeClient().like(genericPostAttributes)
                 showLiked()
             }
-            val showContext: ReplyContextScope.() -> Unit = {
+            val showContext: suspend ReplyContextScope.() -> Unit = {
                 forEachPost {
                     readPost(PostContext.AsReply, {}, performReply, performRepost, performQuote, performLike)
                 }
             }
 
-            val readPostAction: (PostContext) -> (PostScope.() -> Unit) = { context -> {
+            val readPostAction: (PostContext) -> suspend (PostScope.() -> Unit) = { context -> {
                     readPost(context, showContext, performReply, performRepost, performQuote, performLike)
                 }
             }
@@ -78,9 +80,9 @@ class AtReaderThread(private val clientSocket: Socket,
         }
     }
 
-    private fun performDisconnect(reason: DisconnectReason) {
-        clientSocket.close()
+    private suspend fun performDisconnect(reason: DisconnectReason) {
+        connection.socket.close()
         onDisconnect(this, reason)
-        interrupt()
+        coroutineContext.cancel()
     }
 }
