@@ -23,9 +23,10 @@ The client is currently running live at `bsky.tel`, and you should be able to te
  - Liking posts
  - Re-sharing posts
  - Quoting posts
+ - Threads
 
 ## What doesn't work
- - Threads
+ - ~~Threads~~ (released in v0.3)
  - Images (even with alt text)
  - Custom algorithms
  - Viewing more than 10 posts at a time (pagination)
@@ -33,8 +34,8 @@ The client is currently running live at `bsky.tel`, and you should be able to te
  - Blocking / muting
 
 ## Roadmap
- - Early public release
- - Thread unrolling
+ - ~~Early public release~~ (v0.1)
+ - ~~Thread unrolling~~ (v0.3)
  - Images or alt text
  - Adjustable number of posts
 
