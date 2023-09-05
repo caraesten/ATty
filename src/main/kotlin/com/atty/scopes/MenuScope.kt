@@ -6,10 +6,11 @@ import com.atty.DisconnectReason
 import com.atty.OptionItem
 import com.atty.libs.BlueskyClient
 import com.atty.libs.BlueskyWriteClient
+import com.atty.models.StartupOptions
 import com.atty.reverseCase
 import java.net.Socket
 
-class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, isCommodore: Boolean, threadProvider: () -> Thread, disconnectHandler: (DisconnectReason) -> Unit) : BaseLoggedInScope(fullBlueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
+class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, startupOptions: StartupOptions, threadProvider: () -> Thread, disconnectHandler: (DisconnectReason) -> Unit) : BaseLoggedInScope(fullBlueskyClient, socket, startupOptions, threadProvider, disconnectHandler) {
 
     // Don't use this from in here; it's meant to be accessible to functions from this scope
     fun writeClient(): BlueskyWriteClient = fullBlueskyClient
@@ -35,7 +36,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
                                 feed,
                                 blueskyClient,
                                 socket,
-                                isCommodore,
+                                startupOptions,
                                 threadProvider,
                                 disconnectHandler
                             ).apply(onHomeSelected)
@@ -46,7 +47,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
                                 notifications,
                                 blueskyClient,
                                 socket,
-                                isCommodore,
+                                startupOptions,
                                 threadProvider,
                                 disconnectHandler
                             ).apply(onNotificationsSelected)
@@ -57,7 +58,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
                                 blueskyClient,
                                 socket,
                                 disconnectHandler,
-                                isCommodore,
+                                startupOptions,
                                 threadProvider
                             ).apply(onPostSkeetSelected)
                         }
@@ -81,10 +82,10 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, is
     }
 
     private fun List<OptionItem>.toMenuString(): String {
-        val menuChoice = "Choose an option (or X to quit):".run { if (isCommodore) reverseCase() else this }
+        val menuChoice = "Choose an option (or X to quit):".run { if (startupOptions.isCommodore) reverseCase() else this }
         return "" +
                 "\r\n$menuChoice" + this.joinToString {
-                    val itemString = it.optionString.run { if (isCommodore) reverseCase() else this }
+                    val itemString = it.optionString.run { if (startupOptions.isCommodore) reverseCase() else this }
                     "\r\n${it.option.choice}: $itemString"
                 } + "\r\n>"
     }

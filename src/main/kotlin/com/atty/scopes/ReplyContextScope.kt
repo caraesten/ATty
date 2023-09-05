@@ -5,6 +5,7 @@ import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
+import com.atty.models.StartupOptions
 import com.atty.models.getAuthorAttributes
 import java.net.Socket
 
@@ -12,10 +13,10 @@ class ReplyContextScope(
     val replies: List<FeedDefsPostView>,
     blueskyClient: BlueskyReadClient,
     socket: Socket,
-    isCommodore: Boolean,
+    startupOptions: StartupOptions,
     threadProvider: () -> Thread,
     disconnectHandler: (DisconnectReason) -> Unit) :
-    BaseLoggedInScope(blueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
+    BaseLoggedInScope(blueskyClient, socket, startupOptions, threadProvider, disconnectHandler) {
     fun forEachPost(block: PostScope.() -> Unit) {
         replies.forEach { threadItem ->
             val record = threadItem.record
@@ -26,7 +27,7 @@ class ReplyContextScope(
                     GenericPostAttributes(record, threadItem.uri, threadItem.cid),
                     blueskyClient,
                     socket,
-                    isCommodore, threadProvider, disconnectHandler
+                    startupOptions, threadProvider, disconnectHandler
                 ).apply(block)
             }
         }

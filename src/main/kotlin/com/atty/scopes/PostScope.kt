@@ -1,11 +1,13 @@
 package com.atty.scopes
 
+import bsky4j.model.bsky.embed.EmbedImages
 import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.libs.isReply
 import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
+import com.atty.models.StartupOptions
 import java.net.Socket
 
 enum class PostContext {
@@ -18,19 +20,35 @@ class PostScope (
     val genericPostAttributes: GenericPostAttributes,
     blueskyClient: BlueskyReadClient,
     socket: Socket,
-    isCommodore: Boolean,
+    startupOptions: StartupOptions,
     threadProvider: () -> Thread,
     disconnectHandler: (DisconnectReason) -> Unit) :
-    BaseLoggedInScope(blueskyClient, socket, isCommodore, threadProvider, disconnectHandler) {
+    BaseLoggedInScope(blueskyClient, socket, startupOptions, threadProvider, disconnectHandler) {
 
     fun readPost(context: PostContext = PostContext.AsPost, onContext: ReplyContextScope.() -> Unit, onReply: CreatePostScope.() -> Unit, onRepost: CreateRepostScope.() -> Unit, onQuote: CreateQuoteScope.() -> Unit, onLike: CreateLikeScope.() -> Unit) {
         writeAppText(
             "${if (context == PostContext.AsReply) ">>> " else ""}${author.displayName} (${author.handle}) \r\n ${if (feedPost.isReply()) "Reply: " else ""}${feedPost.text}"
         )
+        readImages()
         if (context == PostContext.AsPost) {
             readPostActions(context, onContext, onReply, onRepost, onQuote, onLike)
         } else {
             waitForReturnKey()
+        }
+    }
+
+    private fun readImages() {
+        val embed = feedPost.embed
+        if (embed is EmbedImages) {
+            embed.images.forEach { image ->
+                writeAppText("Image:")
+                if (startupOptions.fullImages) {
+                    // todo
+                } else {
+                    val altText = if (image.alt.isNotEmpty()) image.alt else "[alt text not provided]"
+                    writeAppText(altText)
+                }
+            }
         }
     }
 
@@ -53,19 +71,19 @@ class PostScope (
             when (stringIn.uppercase().first()) {
                 'C' -> {
                     val replies = blueskyClient.fetchThread(genericPostAttributes.uri, 3)
-                    ReplyContextScope(replies, blueskyClient, socket, isCommodore, threadProvider, disconnectHandler).apply(onContext)
+                    ReplyContextScope(replies, blueskyClient, socket, startupOptions, threadProvider, disconnectHandler).apply(onContext)
                 }
                 'R' -> {
-                    CreatePostScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onReply)
+                    CreatePostScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, startupOptions, threadProvider).apply(onReply)
                 }
                 'P' -> {
-                    CreateRepostScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onRepost)
+                    CreateRepostScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, startupOptions, threadProvider).apply(onRepost)
                 }
                 'Q' -> {
-                    CreateQuoteScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onQuote)
+                    CreateQuoteScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, startupOptions, threadProvider).apply(onQuote)
                 }
                 'L' -> {
-                    CreateLikeScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, isCommodore, threadProvider).apply(onLike)
+                    CreateLikeScope(genericPostAttributes, blueskyClient, socket, disconnectHandler, startupOptions, threadProvider).apply(onLike)
                 }
             }
         }

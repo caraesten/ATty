@@ -3,6 +3,7 @@ package com.atty.scopes
 import bsky4j.ATProtocolException
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyClient
+import com.atty.models.StartupOptions
 import java.net.Socket
 
 const val WELCOME_TEXT = "WELCOME TO BSKY.TEL,\r\nTHE TELNET BLUESKY CLIENT\r\n"
@@ -13,6 +14,7 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
             var isLoggedIn = false
             var blueskyClient: BlueskyClient? = null
             var isCommodore = false
+            var fullImages = false
             while (!isLoggedIn) {
                 socket.getOutputStream().write(WELCOME_TEXT.toByteArray())
                 waitForReturnKey()
@@ -32,7 +34,7 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 }
             }
             clearScreen()
-            MenuScope(blueskyClient!!, socket, isCommodore, threadProvider, disconnectHandler).apply(block)
+            MenuScope(blueskyClient!!, socket, StartupOptions(isCommodore, fullImages), threadProvider, disconnectHandler).apply(block)
         } catch (ex: Throwable) {
             ex.printStackTrace()
             disconnectHandler(DisconnectReason.EXCEPTION)

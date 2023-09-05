@@ -4,6 +4,7 @@ import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
 import com.atty.models.PendingPost
+import com.atty.models.StartupOptions
 import java.net.Socket
 
 class CreatePostScope(
@@ -11,8 +12,8 @@ class CreatePostScope(
     blueskyClient: BlueskyReadClient,
     clientSocket: Socket,
     disconnectHandler: (DisconnectReason) -> Unit,
-    isCommodore: Boolean,
-    threadProvider: () -> Thread) : BaseLoggedInScope(blueskyClient, clientSocket, isCommodore, threadProvider, disconnectHandler) {
+    startupOptions: StartupOptions,
+    threadProvider: () -> Thread) : BaseLoggedInScope(blueskyClient, clientSocket, startupOptions, threadProvider, disconnectHandler) {
 
     fun getPost(): PendingPost {
         socket.getOutputStream().write(

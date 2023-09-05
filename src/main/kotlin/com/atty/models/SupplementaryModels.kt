@@ -17,6 +17,11 @@ fun ActorDefsProfileViewBasic.getAuthorAttributes(): AuthorAttributes = AuthorAt
     displayName ?: "", handle
 )
 
+data class StartupOptions(
+    val isCommodore: Boolean,
+    val fullImages: Boolean
+)
+
 data class GenericPostAttributes(
     val feedPost: FeedPost,
     val uri: String,
