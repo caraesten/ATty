@@ -47,13 +47,16 @@ class PostScope (
             images.images.forEach { image ->
                 val fetchedImage = blueskyClient.genericReadClient.getImage(image.thumb)
                 writeAppText(fetchedImage.readToAscii())
+                waitForReturnKey()
                 val altText = image.alt.ifEmpty { "[alt text not provided]" }
                 writeAppText(altText)
+                waitForReturnKey()
             }
         } else if (embed is EmbedImages) {
             embed.images.forEach { image ->
                 val altText = image.alt.ifEmpty { "[alt text not provided]" }
                 writeAppText(altText)
+                waitForReturnKey()
             }
         }
     }

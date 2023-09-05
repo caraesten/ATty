@@ -21,8 +21,12 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 socket.getOutputStream().write("\r\nCOMMODORE 64/128 (Y/N)?: ".toByteArray())
                 isCommodore = waitForStringInput().uppercase() == "Y"
 
-                socket.getOutputStream().write("\r\nASCII IMAGES (Y/N)?: ".toByteArray())
-                fullImages = waitForStringInput().uppercase() == "Y"
+                if (!isCommodore) {
+                    socket.getOutputStream().write("\r\nASCII IMAGES:".toByteArray())
+                    socket.getOutputStream().write("\r\nNote: this is experimental, requires 80x24 terminal".toByteArray())
+                    socket.getOutputStream().write("\r\n(Y/N)?: ".toByteArray())
+                    fullImages = waitForStringInput().uppercase() == "Y"
+                }
 
                 writePrompt("Username", isCommodore)
                 val usernameInput = waitForStringInput()

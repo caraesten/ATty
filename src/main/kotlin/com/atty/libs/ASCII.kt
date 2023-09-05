@@ -4,6 +4,7 @@ import kotlin.jvm.JvmOverloads
 import java.awt.image.BufferedImage
 import java.lang.StringBuilder
 import java.awt.Color
+import kotlin.math.roundToInt
 
 /*Copyright (c) 2011 Aravind Rao
 Modifications by Sam Barnum, 360Works 2012
@@ -74,25 +75,23 @@ class ASCII(private val negative: Boolean = false) {
      * @return char
      */
     private fun returnStrNeg(g: Double): Char {
-        val str: Char = if (g >= 230.0) {
-            '@'
-        } else if (g >= 200.0) {
-            '#'
-        } else if (g >= 180.0) {
-            '8'
-        } else if (g >= 160.0) {
-            '&'
-        } else if (g >= 130.0) {
-            'o'
-        } else if (g >= 100.0) {
-            ':'
-        } else if (g >= 70.0) {
-            '*'
-        } else if (g >= 50.0) {
-            '.'
-        } else {
-            ' '
-        }
-        return str
+        val nearestValue = g.roundToInt()
+        return greyBins.first { it.first.contains(nearestValue) }.second
     }
 }
+
+private val greyBins = listOf(
+    (0..50) to ' ',
+    (51 .. 70) to '.',
+    (71 .. 80) to '-',
+    (81 .. 100) to '*',
+    (101 .. 115) to '^',
+    (116 .. 130) to 'x',
+    (131 .. 145) to 'o',
+    (146 .. 160) to '0',
+    (161 .. 180) to '8',
+    (181 .. 200) to '&',
+    (201 .. 215) to '$',
+    (216 .. 230) to '#',
+    (231 .. Int.MAX_VALUE) to '@'
+)
