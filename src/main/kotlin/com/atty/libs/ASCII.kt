@@ -17,12 +17,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-class ASCII(var negative: Boolean = false) {
+class ASCII(private val negative: Boolean = false) {
 
     fun convert(image: BufferedImage): String {
         val sb = StringBuilder((image.width + 1) * image.height)
         for (y in 0 until image.height) {
-            if (sb.length != 0) sb.append("\n")
+            if (sb.isNotEmpty()) sb.append("\n")
             for (x in 0 until image.width) {
                 val pixelColor = Color(image.getRGB(x, y))
                 val gValue =
