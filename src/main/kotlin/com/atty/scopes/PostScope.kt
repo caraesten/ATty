@@ -1,10 +1,12 @@
 package com.atty.scopes
 
 import bsky4j.model.bsky.embed.EmbedImages
+import bsky4j.model.bsky.embed.EmbedImagesView
 import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.libs.isReply
+import com.atty.libs.readToAscii
 import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
 import com.atty.models.StartupOptions
@@ -39,15 +41,19 @@ class PostScope (
 
     private fun readImages() {
         val embed = feedPost.embed
-        if (embed is EmbedImages) {
+        val embedView = genericPostAttributes.embedView
+        val images = embedView as? EmbedImagesView
+        if (startupOptions.fullImages && images != null) {
+            images.images.forEach { image ->
+                val fetchedImage = blueskyClient.genericReadClient.getImage(image.thumb)
+                writeAppText(fetchedImage.readToAscii())
+                val altText = image.alt.ifEmpty { "[alt text not provided]" }
+                writeAppText(altText)
+            }
+        } else if (embed is EmbedImages) {
             embed.images.forEach { image ->
-                writeAppText("Image:")
-                if (startupOptions.fullImages) {
-                    // todo
-                } else {
-                    val altText = if (image.alt.isNotEmpty()) image.alt else "[alt text not provided]"
-                    writeAppText(altText)
-                }
+                val altText = image.alt.ifEmpty { "[alt text not provided]" }
+                writeAppText(altText)
             }
         }
     }

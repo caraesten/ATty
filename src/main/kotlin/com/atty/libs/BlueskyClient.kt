@@ -18,6 +18,8 @@ import com.atty.models.GenericPostAttributes
 import com.atty.models.PendingPost
 
 interface BlueskyReadClient {
+    val genericReadClient: GenericHttpReadClient
+
     fun getHomeTimeline(): List<FeedDefsFeedViewPost>
     fun getNotificationsTimeline(): List<NotificationListNotificationsNotification>
     fun fetchPosts(uris: List<String>): List<FeedDefsPostView>
@@ -37,6 +39,7 @@ class BlueskyClient (
 ) : BlueskyReadClient, BlueskyWriteClient {
     private val bskyFactory = BlueskyFactory.getInstance(Service.BSKY_SOCIAL.uri)
     private val accessJwt: String
+    override val genericReadClient: GenericHttpReadClient = GenericHttpReadClientImpl()
 
     init {
         val response =
@@ -89,6 +92,10 @@ class BlueskyClient (
                 emptyList() // probably blocked idk
             }
         }
+    }
+
+    fun getImage(ref: String) {
+
     }
 
     override fun fetchPosts(uris: List<String>): List<FeedDefsPostView> {

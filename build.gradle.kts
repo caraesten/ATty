@@ -23,6 +23,7 @@ dependencies {
     }
     implementation("com.github.uakihir0:JLogger:1.4")
     implementation("com.github.uakihir0:JHttpClient:1.1.9")
+    implementation("net.coobird:thumbnailator:0.4.20")
 }
 
 tasks.test {

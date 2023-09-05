@@ -21,6 +21,9 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 socket.getOutputStream().write("\r\nCOMMODORE 64/128 (Y/N)?: ".toByteArray())
                 isCommodore = waitForStringInput().uppercase() == "Y"
 
+                socket.getOutputStream().write("\r\nASCII IMAGES (Y/N)?: ".toByteArray())
+                fullImages = waitForStringInput().uppercase() == "Y"
+
                 writePrompt("Username", isCommodore)
                 val usernameInput = waitForStringInput()
                 writePrompt("Password", isCommodore)

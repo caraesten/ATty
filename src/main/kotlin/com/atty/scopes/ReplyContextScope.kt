@@ -24,7 +24,7 @@ class ReplyContextScope(
                 PostScope(
                     threadItem.author.getAuthorAttributes(),
                     record,
-                    GenericPostAttributes(record, threadItem.uri, threadItem.cid),
+                    GenericPostAttributes(record, threadItem.uri, threadItem.cid, threadItem.embed),
                     blueskyClient,
                     socket,
                     startupOptions, threadProvider, disconnectHandler

@@ -90,7 +90,7 @@ abstract class BaseScope(
     }
 
     fun writeUi(text: String, isCommodore: Boolean = false) {
-        val string = "\r\n [$text] \r\n".run {
+        val string = "\r\n[$text] \r\n".run {
             if (isCommodore) this.reverseCase() else this
         }
         socket.getOutputStream().write(
@@ -99,7 +99,7 @@ abstract class BaseScope(
     }
 
     fun writeAppText(text: String, isCommodore: Boolean = false) {
-        val string = "\r\n $text \r\n".run {
+        val string = "\r\n$text \r\n".run {
             if (isCommodore) this.reverseCase() else this
         }
         socket.getOutputStream().write(

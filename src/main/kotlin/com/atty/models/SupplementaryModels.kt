@@ -2,6 +2,7 @@ package com.atty.models
 
 import bsky4j.model.bsky.actor.ActorDefsProfileView
 import bsky4j.model.bsky.actor.ActorDefsProfileViewBasic
+import bsky4j.model.bsky.embed.EmbedViewUnion
 import bsky4j.model.bsky.feed.FeedPost
 
 data class AuthorAttributes(
@@ -26,6 +27,7 @@ data class GenericPostAttributes(
     val feedPost: FeedPost,
     val uri: String,
     val cid: String,
+    val embedView: EmbedViewUnion?
 )
 
 data class PendingPost(

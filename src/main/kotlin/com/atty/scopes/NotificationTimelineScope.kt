@@ -41,7 +41,8 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                             GenericPostAttributes(
                                 record,
                                 notif.uri,
-                                notif.cid
+                                notif.cid,
+                                null
                             ),
                             blueskyClient, socket, startupOptions, threadProvider, disconnectHandler
                         ).apply(block)
@@ -58,7 +59,8 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                             GenericPostAttributes(
                                 feedPost,
                                 notif.uri,
-                                notif.cid
+                                notif.cid,
+                                null
                             ),
                             blueskyClient, socket, startupOptions, threadProvider, disconnectHandler
                         ).apply(block)
@@ -75,7 +77,8 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                             GenericPostAttributes(
                                 feedPost,
                                 notif.uri,
-                                notif.cid
+                                notif.cid,
+                                null
                             ),
                             blueskyClient, socket, startupOptions, threadProvider, disconnectHandler
                         ).apply(block)

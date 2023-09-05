@@ -23,7 +23,7 @@ class HomeTimelineScope (
                 PostScope(
                     it.post.author.getAuthorAttributes(),
                     feedPost,
-                    GenericPostAttributes(feedPost, it.post.uri, it.post.cid),
+                    GenericPostAttributes(feedPost, it.post.uri, it.post.cid, it.post.embed),
                     blueskyClient,
                     socket,
                     startupOptions, threadProvider, disconnectHandler
