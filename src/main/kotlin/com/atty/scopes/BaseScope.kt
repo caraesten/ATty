@@ -5,7 +5,9 @@ import com.atty.reverseCase
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import java.lang.NullPointerException
 import java.net.Socket
+import java.net.SocketTimeoutException
 import java.nio.charset.Charset
 
 data class IntSelection(
@@ -28,7 +30,11 @@ abstract class BaseScope(
 ) {
     fun waitForReturnKey() {
         val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
-        inputStream.readLine()
+        try {
+            inputStream.readLine()
+        } catch (e: SocketTimeoutException) {
+            disconnectHandler(DisconnectReason.TIMEOUT)
+        }
     }
 
     fun clearScreen(charset: Charset = Charsets.UTF_8) {
@@ -46,6 +52,8 @@ abstract class BaseScope(
         } catch (ex: IllegalArgumentException) {
             ""
         } catch (ex: IOException) {
+            ""
+        } catch (ex: NullPointerException) {
             ""
         }
 
