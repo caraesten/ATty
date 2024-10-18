@@ -3,6 +3,7 @@ package com.atty.scopes
 import bsky4j.ATProtocolException
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyClient
+import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
 import java.net.Socket
 
@@ -14,7 +15,7 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
             var isLoggedIn = false
             var blueskyClient: BlueskyClient? = null
             var isCommodore = false
-            var fullImages = false
+            var imageMode = ImageMode.NoImages
             while (!isLoggedIn) {
                 socket.getOutputStream().write(WELCOME_TEXT.toByteArray())
                 waitForReturnKey()
@@ -22,10 +23,9 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 isCommodore = waitForStringInput().uppercase() == "Y"
 
                 if (!isCommodore) {
-                    socket.getOutputStream().write("\r\nASCII IMAGES:".toByteArray())
-                    socket.getOutputStream().write("\r\nNote: this is experimental, requires 80x24 terminal".toByteArray())
-                    socket.getOutputStream().write("\r\n(Y/N)?: ".toByteArray())
-                    fullImages = waitForStringInput().uppercase() == "Y"
+                    socket.getOutputStream().write("\r\nIMAGES: Alt [T]ext (default), [A]SCII, [S]ixels".toByteArray())
+                    socket.getOutputStream().write("\r\n(T,A,S)?: ".toByteArray())
+                    imageMode = ImageMode.fromStringInput(waitForStringInput().uppercase())
                 }
 
                 writePrompt("Username", isCommodore)
@@ -41,7 +41,7 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 }
             }
             clearScreen()
-            MenuScope(blueskyClient!!, socket, StartupOptions(isCommodore, fullImages), threadProvider, disconnectHandler).apply(block)
+            MenuScope(blueskyClient!!, socket, StartupOptions(isCommodore, imageMode), threadProvider, disconnectHandler).apply(block)
         } catch (ex: Throwable) {
             ex.printStackTrace()
             disconnectHandler(DisconnectReason.EXCEPTION)

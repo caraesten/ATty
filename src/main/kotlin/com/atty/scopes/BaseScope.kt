@@ -102,8 +102,12 @@ abstract class BaseScope(
         val string = "\r\n$text \r\n".run {
             if (isCommodore) this.reverseCase() else this
         }
+        writeBytes(string.toByteArray())
+    }
+
+    fun writeBytes(bytes: ByteArray) {
         socket.getOutputStream().write(
-            string.toByteArray()
+            bytes
         )
     }
 

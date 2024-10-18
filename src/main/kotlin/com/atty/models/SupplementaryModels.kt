@@ -5,6 +5,20 @@ import bsky4j.model.bsky.actor.ActorDefsProfileViewBasic
 import bsky4j.model.bsky.embed.EmbedViewUnion
 import bsky4j.model.bsky.feed.FeedPost
 
+enum class ImageMode {
+    NoImages, AsciiImages, SixelImages;
+
+    companion object {
+        fun fromStringInput(input: String): ImageMode {
+            return when (input) {
+                "A" -> AsciiImages
+                "S" -> SixelImages
+                else -> NoImages
+            }
+        }
+    }
+}
+
 data class AuthorAttributes(
     val displayName: String,
     val handle: String
@@ -20,7 +34,7 @@ fun ActorDefsProfileViewBasic.getAuthorAttributes(): AuthorAttributes = AuthorAt
 
 data class StartupOptions(
     val isCommodore: Boolean,
-    val fullImages: Boolean
+    val imageMode: ImageMode
 )
 
 data class GenericPostAttributes(

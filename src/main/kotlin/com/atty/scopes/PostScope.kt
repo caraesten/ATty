@@ -9,8 +9,11 @@ import com.atty.libs.isReply
 import com.atty.libs.readToAscii
 import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
+import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
+import com.sshtools.jsixel.lib.bitmap.Bitmap2Sixel.Bitmap2SixelBuilder
 import java.net.Socket
+import java.net.URL
 
 enum class PostContext {
     AsPost, AsNotification, AsReply
@@ -43,10 +46,19 @@ class PostScope (
         val embed = feedPost.embed
         val embedView = genericPostAttributes.embedView
         val images = embedView as? EmbedImagesView
-        if (startupOptions.fullImages && images != null) {
+        if (startupOptions.imageMode != ImageMode.NoImages && images != null) {
             images.images.forEach { image ->
-                val fetchedImage = blueskyClient.genericReadClient.getImage(image.thumb)
-                writeAppText(fetchedImage.readToAscii())
+                val outputBytes = when (startupOptions.imageMode) {
+                    ImageMode.AsciiImages -> {
+                        val fetchedImage = blueskyClient.genericReadClient.getImageStream(image.thumb)
+                        fetchedImage.readToAscii().toByteArray()
+                    }
+                    ImageMode.SixelImages -> {
+                        Bitmap2SixelBuilder().fromURL(URL(image.thumb)).build().toByteArray()
+                    }
+                    else -> "".toByteArray()
+                }
+                writeBytes(outputBytes)
                 waitForReturnKey()
                 val altText = image.alt.ifEmpty { "[alt text not provided]" }
                 writeAppText(altText)

@@ -9,10 +9,10 @@ import javax.imageio.stream.ImageInputStream
  */
 
 interface GenericHttpReadClient {
-    fun getImage(urlString: String): ImageInputStream
+    fun getImageStream(urlString: String): ImageInputStream
 }
 class GenericHttpReadClientImpl : GenericHttpReadClient {
-    override fun getImage(urlString: String): ImageInputStream {
+    override fun getImageStream(urlString: String): ImageInputStream {
         val url = URL(urlString)
         return ImageIO.createImageInputStream(url.openStream())
     }

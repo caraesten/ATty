@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-group = "me.carahurtle"
+group = "com.atty"
 version = "0.5"
 
 repositories {
@@ -24,6 +24,8 @@ dependencies {
     implementation("com.github.uakihir0:JLogger:1.4")
     implementation("com.github.uakihir0:JHttpClient:1.1.9")
     implementation("net.coobird:thumbnailator:0.4.20")
+    implementation("com.sshtools:jsixel:0.0.2")
+    implementation("com.sshtools:jsixel-awt:0.0.2")
 }
 
 tasks.test {
@@ -31,7 +33,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "15"
 }
 
 application {
