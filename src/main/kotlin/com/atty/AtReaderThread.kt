@@ -3,6 +3,7 @@ package com.atty
 import com.atty.libs.BlueskyClient
 import com.atty.scopes.*
 import java.net.Socket
+import java.net.SocketException
 import java.nio.charset.Charset
 
 
@@ -32,49 +33,55 @@ class AtReaderThread(private val clientSocket: Socket,
     }
 
     override fun run() {
-        LoginScope(clientSocket, { currentThread() }, ::performDisconnect).performLogin {
-            val performReply: CreatePostScope.() -> Unit = {
-                val pending = getPost()
-                writeClient().sendPost(pending)
-                showPosted()
-            }
-            val performRepost: CreateRepostScope.() -> Unit = {
-                writeClient().repost(genericPostAttributes)
-                showReposted()
-            }
-            val performQuote: CreateQuoteScope.() -> Unit = {
-                val pending = getPost()
-                writeClient().sendPost(pending)
-                showQuoted()
-            }
-            val performLike: CreateLikeScope.() -> Unit = {
-                writeClient().like(genericPostAttributes)
-                showLiked()
-            }
-            val showContext: ReplyContextScope.() -> Unit = {
-                forEachPost {
-                    readPost(PostContext.AsReply, {}, performReply, performRepost, performQuote, performLike)
-                }
-            }
-
-            val readPostAction: (PostContext) -> (PostScope.() -> Unit) = { context -> {
-                    readPost(context, showContext, performReply, performRepost, performQuote, performLike)
-                }
-            }
-
-            readMenu(
-                onHomeSelected = {
-                    forEachPost(readPostAction(PostContext.AsPost))
-                },
-                onNotificationsSelected = {
-                    forEachPost(readPostAction(PostContext.AsNotification))
-                },
-                onPostSkeetSelected = {
-                    val pendingPost = getPost()
-                    writeClient().sendPost(pendingPost)
+        try {
+            LoginScope(clientSocket, { currentThread() }, ::performDisconnect).performLogin {
+                val performReply: CreatePostScope.() -> Unit = {
+                    val pending = getPost()
+                    writeClient().sendPost(pending)
                     showPosted()
-                },
-            )
+                }
+                val performRepost: CreateRepostScope.() -> Unit = {
+                    writeClient().repost(genericPostAttributes)
+                    showReposted()
+                }
+                val performQuote: CreateQuoteScope.() -> Unit = {
+                    val pending = getPost()
+                    writeClient().sendPost(pending)
+                    showQuoted()
+                }
+                val performLike: CreateLikeScope.() -> Unit = {
+                    writeClient().like(genericPostAttributes)
+                    showLiked()
+                }
+                val showContext: ReplyContextScope.() -> Unit = {
+                    forEachPost {
+                        readPost(PostContext.AsReply, {}, performReply, performRepost, performQuote, performLike)
+                    }
+                }
+
+                val readPostAction: (PostContext) -> (PostScope.() -> Unit) = { context ->
+                    {
+                        readPost(context, showContext, performReply, performRepost, performQuote, performLike)
+                    }
+                }
+
+                readMenu(
+                    onHomeSelected = {
+                        forEachPost(readPostAction(PostContext.AsPost))
+                    },
+                    onNotificationsSelected = {
+                        forEachPost(readPostAction(PostContext.AsNotification))
+                    },
+                    onPostSkeetSelected = {
+                        val pendingPost = getPost()
+                        writeClient().sendPost(pendingPost)
+                        showPosted()
+                    },
+                )
+            }
+        } catch (e: SocketException) {
+            // tidy up
+            performDisconnect(DisconnectReason.EXCEPTION)
         }
     }
 
