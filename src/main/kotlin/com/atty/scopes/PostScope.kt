@@ -12,6 +12,7 @@ import com.atty.models.GenericPostAttributes
 import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
 import com.sshtools.jsixel.lib.bitmap.Bitmap2Sixel.Bitmap2SixelBuilder
+import com.sshtools.jsixel.lib.bitmap.BuiltInPalette
 import java.net.Socket
 import java.net.URL
 
@@ -53,7 +54,10 @@ class PostScope (
                         val fetchedImage = blueskyClient.genericReadClient.getImageStream(image.thumb)
                         fetchedImage.readToAscii().toByteArray()
                     }
-                    ImageMode.SixelImages -> {
+                    ImageMode.MonochromeSixelImages -> {
+                        Bitmap2SixelBuilder().fromURL(URL(image.thumb)).withPalette(BuiltInPalette.MONO_LIGHT).build().toByteArray()
+                    }
+                    ImageMode.ColorSixelImages -> {
                         Bitmap2SixelBuilder().fromURL(URL(image.thumb)).build().toByteArray()
                     }
                     else -> "".toByteArray()

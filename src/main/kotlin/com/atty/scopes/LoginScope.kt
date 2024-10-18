@@ -23,8 +23,8 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 isCommodore = waitForStringInput().uppercase() == "Y"
 
                 if (!isCommodore) {
-                    socket.getOutputStream().write("\r\nIMAGES: Alt [T]ext (default), [A]SCII, [S]ixels".toByteArray())
-                    socket.getOutputStream().write("\r\n(T,A,S)?: ".toByteArray())
+                    socket.getOutputStream().write("\r\nIMAGES: Alt [T]ext (default), [A]SCII, [M]onochrome sixels, [C]olor sixels".toByteArray())
+                    socket.getOutputStream().write("\r\n(T,A,M,C)?: ".toByteArray())
                     imageMode = ImageMode.fromStringInput(waitForStringInput().uppercase())
                 }
 

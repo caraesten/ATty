@@ -6,13 +6,14 @@ import bsky4j.model.bsky.embed.EmbedViewUnion
 import bsky4j.model.bsky.feed.FeedPost
 
 enum class ImageMode {
-    NoImages, AsciiImages, SixelImages;
+    NoImages, AsciiImages, ColorSixelImages, MonochromeSixelImages;
 
     companion object {
         fun fromStringInput(input: String): ImageMode {
             return when (input) {
                 "A" -> AsciiImages
-                "S" -> SixelImages
+                "B" -> MonochromeSixelImages
+                "C" -> ColorSixelImages
                 else -> NoImages
             }
         }
