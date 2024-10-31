@@ -27,7 +27,7 @@ The client is currently running live at `bsky.tel`, and you should be able to te
 
 ## What doesn't work
  - ~~Threads~~ (released in v0.3)
- - Images (even with alt text)
+ - ~~Images~~ (experimental ASCII and Sixel support)
  - Custom algorithms
  - Viewing more than 10 posts at a time (pagination)
  - Following / unfollowing
@@ -36,7 +36,7 @@ The client is currently running live at `bsky.tel`, and you should be able to te
 ## Roadmap
  - ~~Early public release~~ (v0.1)
  - ~~Thread unrolling~~ (v0.3)
- - Images or alt text
+ - ~~Images or alt text (v0.7)~~
  - Adjustable number of posts
 
 ## Supported devices
