@@ -24,6 +24,7 @@ The client is currently running live at `bsky.tel`, and you should be able to te
  - Re-sharing posts
  - Quoting posts
  - Threads
+ - Images (sixel and ASCII)
 
 ## What doesn't work
  - ~~Threads~~ (released in v0.3)
