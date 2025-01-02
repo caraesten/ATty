@@ -34,7 +34,7 @@ class AtReaderThread(private val clientSocket: Socket,
 
     override fun run() {
         try {
-            LoginScope(clientSocket, { currentThread() }, ::performDisconnect).performLogin {
+            LoginScope(clientSocket, { this@AtReaderThread }, ::performDisconnect).performLogin {
                 val performReply: CreatePostScope.() -> Unit = {
                     val pending = getPost()
                     writeClient().sendPost(pending)
@@ -72,7 +72,7 @@ class AtReaderThread(private val clientSocket: Socket,
                     onNotificationsSelected = {
                         forEachPost(readPostAction(PostContext.AsNotification))
                     },
-                    onPostSkeetSelected = {
+                    onCreatePostSelected = {
                         val pendingPost = getPost()
                         writeClient().sendPost(pendingPost)
                         showPosted()

@@ -18,7 +18,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, st
     fun readMenu(
         onHomeSelected: HomeTimelineScope.() -> Unit,
         onNotificationsSelected: NotificationTimelineScope.() -> Unit,
-        onPostSkeetSelected: CreatePostScope.() -> Unit,
+        onCreatePostSelected: CreatePostScope.() -> Unit,
     ) {
         while (!threadProvider().isInterrupted) {
             try {
@@ -60,7 +60,7 @@ class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, st
                                 disconnectHandler,
                                 startupOptions,
                                 threadProvider
-                            ).apply(onPostSkeetSelected)
+                            ).apply(onCreatePostSelected)
                         }
                     }
                 } catch (e: ATProtocolException) {

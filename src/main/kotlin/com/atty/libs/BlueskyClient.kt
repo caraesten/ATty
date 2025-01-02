@@ -15,16 +15,16 @@ import bsky4j.model.bsky.richtext.RichtextFacetByteSlice
 import bsky4j.model.bsky.richtext.RichtextFacetLink
 import bsky4j.model.bsky.richtext.RichtextFacetMention
 import com.atty.models.GenericPostAttributes
+import com.atty.models.ImageMode
 import com.atty.models.PendingPost
 
 interface BlueskyReadClient {
-    val genericReadClient: GenericHttpReadClient
-
     fun getHomeTimeline(): List<FeedDefsFeedViewPost>
     fun getNotificationsTimeline(): List<NotificationListNotificationsNotification>
     fun fetchPosts(uris: List<String>): List<FeedDefsPostView>
     fun resolveHandle(handle: String): String
     fun fetchThread(uri: String, depth: Int): List<FeedDefsPostView>
+    fun readImage(url: String): ByteArray
 }
 
 interface BlueskyWriteClient {
@@ -35,11 +35,12 @@ interface BlueskyWriteClient {
 
 class BlueskyClient (
     username: String,
-    password: String
+    password: String,
+    imageMode: ImageMode
 ) : BlueskyReadClient, BlueskyWriteClient {
     private val bskyFactory = BlueskyFactory.getInstance(Service.BSKY_SOCIAL.uri)
     private val accessJwt: String
-    override val genericReadClient: GenericHttpReadClient = GenericHttpReadClientImpl()
+    private val imageReader: ImageReader = ImageReaderImpl(imageMode)
 
     init {
         val response =
@@ -94,8 +95,8 @@ class BlueskyClient (
         }
     }
 
-    fun getImage(ref: String) {
-
+    override fun readImage(url: String): ByteArray {
+        return imageReader.readImage(url)
     }
 
     override fun fetchPosts(uris: List<String>): List<FeedDefsPostView> {

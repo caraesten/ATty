@@ -6,6 +6,7 @@ import com.atty.libs.BlueskyClient
 import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
 import java.net.Socket
+import java.net.SocketException
 
 const val WELCOME_TEXT = "WELCOME TO BSKY.TEL,\r\nTHE TELNET BLUESKY CLIENT\r\n"
 
@@ -34,7 +35,7 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
                 val passwordInput = waitForStringInput(isCommodore)
 
                 try {
-                    blueskyClient = BlueskyClient(usernameInput, passwordInput)
+                    blueskyClient = BlueskyClient(usernameInput, passwordInput, imageMode)
                     isLoggedIn = true
                 } catch (e: ATProtocolException) {
                     socket.getOutputStream().write("\r\nINVALID CREDENTIALS\r\n".toByteArray())
@@ -43,7 +44,10 @@ class LoginScope (socket: Socket, threadProvider: () -> Thread, disconnectHandle
             clearScreen()
             MenuScope(blueskyClient!!, socket, StartupOptions(isCommodore, imageMode), threadProvider, disconnectHandler).apply(block)
         } catch (ex: Throwable) {
-            ex.printStackTrace()
+            // Normal disconnects shouldn't pollute logs
+            if (ex !is SocketException) {
+                ex.printStackTrace()
+            }
             disconnectHandler(DisconnectReason.EXCEPTION)
         }
     }

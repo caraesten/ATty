@@ -6,14 +6,11 @@ import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.libs.isReply
-import com.atty.libs.readToAscii
 import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
 import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
-import com.sshtools.jsixel.lib.bitmap.Bitmap2Sixel.Bitmap2SixelBuilder
 import java.net.Socket
-import java.net.URL
 
 enum class PostContext {
     AsPost, AsNotification, AsReply
@@ -48,16 +45,7 @@ class PostScope (
         val images = embedView as? EmbedImagesView
         if (startupOptions.imageMode != ImageMode.NoImages && images != null) {
             images.images.forEach { image ->
-                val outputBytes = when (startupOptions.imageMode) {
-                    ImageMode.AsciiImages -> {
-                        val fetchedImage = blueskyClient.genericReadClient.getImageStream(image.thumb)
-                        fetchedImage.readToAscii().toByteArray()
-                    }
-                    ImageMode.SixelImages -> {
-                        Bitmap2SixelBuilder().fromURL(URL(image.thumb)).build().toByteArray()
-                    }
-                    else -> "".toByteArray()
-                }
+                val outputBytes = blueskyClient.readImage(image.thumb)
                 writeBytes(outputBytes)
                 waitForReturnKey()
                 val altText = image.alt.ifEmpty { "[alt text not provided]" }
@@ -65,8 +53,8 @@ class PostScope (
                 waitForReturnKey()
             }
         } else if (embed is EmbedImages) {
-            embed.images.forEach { image ->
-                val altText = image.alt.ifEmpty { "[alt text not provided]" }
+            embed.images.forEachIndexed { i, image ->
+                val altText = "[IMAGE $i]\r\n" + image.alt.ifEmpty { "[alt text not provided]" }
                 writeAppText(altText)
                 waitForReturnKey()
             }

@@ -2,11 +2,14 @@ package com.atty.libs
 
 import net.coobird.thumbnailator.Thumbnails
 import net.coobird.thumbnailator.geometry.Positions
-import javax.imageio.ImageIO
-import javax.imageio.stream.ImageInputStream
+import java.awt.image.BufferedImage
 
-fun ImageInputStream.readToAscii(maxWidth: Int = 78, maxHeight: Int = 24): String {
-    val bufferedImage = ImageIO.read(this)
-    val scaled = Thumbnails.of(bufferedImage).crop(Positions.CENTER).size(maxWidth, maxHeight).asBufferedImage();
+fun BufferedImage.convertToAscii(maxWidth: Int = 78, maxHeight: Int = 24): String {
+    val scaled = Thumbnails.of(this).crop(Positions.CENTER).size(maxWidth, maxHeight).asBufferedImage();
     return ASCII(true).convert(scaled)
 }
+
+fun BufferedImage.scaleToSixelSize(maxWidth: Int = 480, maxHeight: Int = 360): BufferedImage {
+    return Thumbnails.of(this).crop(Positions.CENTER).size(maxWidth, maxHeight).asBufferedImage()
+}
+

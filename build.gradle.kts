@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.atty"
-version = "0.8"
+version = "0.12"
 
 repositories {
     mavenCentral()
