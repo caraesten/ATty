@@ -1,10 +1,10 @@
 package com.atty.scopes
 
-import bsky4j.ATProtocolException
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyClient
 import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
+import work.socialhub.kbsky.ATProtocolException
 import java.net.Socket
 import java.net.SocketException
 

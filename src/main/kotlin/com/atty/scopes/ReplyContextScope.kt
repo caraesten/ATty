@@ -1,12 +1,13 @@
 package com.atty.scopes
 
-import bsky4j.model.bsky.feed.FeedDefsPostView
-import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
+import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
 import com.atty.models.StartupOptions
 import com.atty.models.getAuthorAttributes
+import work.socialhub.kbsky.model.app.bsky.feed.FeedDefsPostView
+import work.socialhub.kbsky.model.app.bsky.feed.FeedPost
 import java.net.Socket
 
 class ReplyContextScope(
@@ -22,9 +23,9 @@ class ReplyContextScope(
             val record = threadItem.record
             if (record is FeedPost) { // this should always be true
                 PostScope(
-                    threadItem.author.getAuthorAttributes(),
+                    threadItem.author?.getAuthorAttributes() ?: AuthorAttributes("", ""),
                     record,
-                    GenericPostAttributes(record, threadItem.uri, threadItem.cid, threadItem.embed),
+                    GenericPostAttributes(record, threadItem.uri ?: "", threadItem.cid ?: "", threadItem.embed),
                     blueskyClient,
                     socket,
                     startupOptions, threadProvider, disconnectHandler

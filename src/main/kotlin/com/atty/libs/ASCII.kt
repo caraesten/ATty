@@ -1,9 +1,7 @@
 package com.atty.libs
 
-import kotlin.jvm.JvmOverloads
-import java.awt.image.BufferedImage
-import java.lang.StringBuilder
 import java.awt.Color
+import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
 /*Copyright (c) 2011 Aravind Rao
