@@ -47,5 +47,5 @@ The client is currently running live at `bsky.tel`, and you should be able to te
  - Future releases may add a compatibility mode to strip those characters
 
 ## Libraries
- - ATty is built on the amazing [bsky4j](https://github.com/uakihir0/bsky4j) library
+ - ATty is built on the amazing [Kbsky](https://github.com/uakihir0/kbsky) library
  - It also uses extensive code from my other telnet project, New Session / [dial-a-zine](https://github.com/caraesten/dial_a_zine2/tree/main)
