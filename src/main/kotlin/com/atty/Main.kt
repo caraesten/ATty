@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 
-fun main(args: Array<String>) {
+fun main() {
     val port = System.getProperty("port").toInt()
     val logFile = System.getProperty("logFile")
     val timeFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME

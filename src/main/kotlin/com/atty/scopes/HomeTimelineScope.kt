@@ -1,12 +1,13 @@
 package com.atty.scopes
 
-import bsky4j.model.bsky.feed.FeedDefsFeedViewPost
-import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
+import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
 import com.atty.models.StartupOptions
 import com.atty.models.getAuthorAttributes
+import work.socialhub.kbsky.model.app.bsky.feed.FeedDefsFeedViewPost
+import work.socialhub.kbsky.model.app.bsky.feed.FeedPost
 import java.net.Socket
 
 class HomeTimelineScope (
@@ -21,9 +22,9 @@ class HomeTimelineScope (
             if (it.post.record is FeedPost) {
                 val feedPost = it.post.record as FeedPost
                 PostScope(
-                    it.post.author.getAuthorAttributes(),
+                    it.post.author?.getAuthorAttributes() ?: AuthorAttributes("", ""),
                     feedPost,
-                    GenericPostAttributes(feedPost, it.post.uri, it.post.cid, it.post.embed),
+                    GenericPostAttributes(feedPost, it.post.uri ?: "", it.post.cid ?: "", it.post.embed),
                     blueskyClient,
                     socket,
                     startupOptions, threadProvider, disconnectHandler

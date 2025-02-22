@@ -1,15 +1,15 @@
 package com.atty.scopes
 
-import bsky4j.model.bsky.feed.FeedLike
-import bsky4j.model.bsky.feed.FeedPost
-import bsky4j.model.bsky.feed.FeedRepost
-import bsky4j.model.bsky.graph.GraphFollow
-import bsky4j.model.bsky.notification.NotificationListNotificationsNotification
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.models.GenericPostAttributes
 import com.atty.models.StartupOptions
 import com.atty.models.getAuthorAttributes
+import work.socialhub.kbsky.model.app.bsky.feed.FeedLike
+import work.socialhub.kbsky.model.app.bsky.feed.FeedPost
+import work.socialhub.kbsky.model.app.bsky.feed.FeedRepost
+import work.socialhub.kbsky.model.app.bsky.graph.GraphFollow
+import work.socialhub.kbsky.model.app.bsky.notification.NotificationListNotificationsNotification
 import java.net.Socket
 
 class NotificationTimelineScope (val notifs: List<NotificationListNotificationsNotification>,
@@ -25,12 +25,12 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                 .filter { it.record is FeedRepost || it.record is FeedLike }
                 .map {
                     when(it.record) {
-                        is FeedRepost -> (it.record as FeedRepost).subject.uri
-                        is FeedLike -> (it.record as FeedLike).subject.uri
+                        is FeedRepost -> (it.record as FeedRepost).subject?.uri
+                        is FeedLike -> (it.record as FeedLike).subject?.uri
                         else -> error("Impossible bc of cast above")
                     }
                 }
-            val posts = blueskyClient.fetchPosts(prefetchPosts)
+            val posts = blueskyClient.fetchPosts(prefetchPosts.filterNotNull())
             notifs.forEach { notif ->
                 val record = notif.record
                 when (record) {
@@ -51,7 +51,7 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                         writeAppText(
                             "${notif.author.displayName} (${notif.author.handle}) Reposted:"
                         )
-                        val post = posts.find { it.uri == record.subject.uri }!!
+                        val post = posts.find { it.uri == record.subject?.uri }!!
                         val feedPost = post.record as FeedPost
                         PostScope(
                             notif.author.getAuthorAttributes(),
@@ -69,7 +69,7 @@ class NotificationTimelineScope (val notifs: List<NotificationListNotificationsN
                         writeAppText(
                             "${notif.author.displayName} (${notif.author.handle}) Liked:"
                         )
-                        val post = posts.find { it.uri == record.subject.uri }!!
+                        val post = posts.find { it.uri == record.subject?.uri }!!
                         val feedPost = post.record as FeedPost
                         PostScope(
                             notif.author.getAuthorAttributes(),

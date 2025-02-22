@@ -1,8 +1,8 @@
 package com.atty.libs
 
-import bsky4j.model.bsky.feed.FeedPost
 import com.atty.models.Link
 import com.atty.models.Mention
+import work.socialhub.kbsky.model.app.bsky.feed.FeedPost
 
 val mentionRegex = """@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?""".toRegex()
 val urlRegex = """[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)""".toRegex()
@@ -24,4 +24,7 @@ fun String.getLinks(): List<Link> {
     }.toList()
 }
 
-fun FeedPost.isReply(): Boolean = this.reply != null && this.reply.parent != null
+fun FeedPost.isReply(): Boolean {
+    val reply = this.reply
+    return reply?.parent != null
+}

@@ -1,6 +1,5 @@
 package com.atty.scopes
 
-import bsky4j.ATProtocolException
 import com.atty.BskyOptions
 import com.atty.DisconnectReason
 import com.atty.OptionItem
@@ -8,6 +7,7 @@ import com.atty.libs.BlueskyClient
 import com.atty.libs.BlueskyWriteClient
 import com.atty.models.StartupOptions
 import com.atty.reverseCase
+import work.socialhub.kbsky.ATProtocolException
 import java.net.Socket
 
 class MenuScope(private val fullBlueskyClient: BlueskyClient, socket: Socket, startupOptions: StartupOptions, threadProvider: () -> Thread, disconnectHandler: (DisconnectReason) -> Unit) : BaseLoggedInScope(fullBlueskyClient, socket, startupOptions, threadProvider, disconnectHandler) {

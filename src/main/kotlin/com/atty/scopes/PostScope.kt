@@ -1,8 +1,5 @@
 package com.atty.scopes
 
-import bsky4j.model.bsky.embed.EmbedImages
-import bsky4j.model.bsky.embed.EmbedImagesView
-import bsky4j.model.bsky.feed.FeedPost
 import com.atty.DisconnectReason
 import com.atty.libs.BlueskyReadClient
 import com.atty.libs.isReply
@@ -10,6 +7,9 @@ import com.atty.models.AuthorAttributes
 import com.atty.models.GenericPostAttributes
 import com.atty.models.ImageMode
 import com.atty.models.StartupOptions
+import work.socialhub.kbsky.model.app.bsky.embed.EmbedImages
+import work.socialhub.kbsky.model.app.bsky.embed.EmbedImagesView
+import work.socialhub.kbsky.model.app.bsky.feed.FeedPost
 import java.net.Socket
 
 enum class PostContext {
@@ -44,17 +44,17 @@ class PostScope (
         val embedView = genericPostAttributes.embedView
         val images = embedView as? EmbedImagesView
         if (startupOptions.imageMode != ImageMode.NoImages && images != null) {
-            images.images.forEach { image ->
+            (images.images ?: emptyList()).forEach { image ->
                 val outputBytes = blueskyClient.readImage(image.thumb)
                 writeBytes(outputBytes)
                 waitForReturnKey()
-                val altText = image.alt.ifEmpty { "[alt text not provided]" }
+                val altText = (image.alt ?: "").ifEmpty { "[alt text not provided]" }
                 writeAppText(altText)
                 waitForReturnKey()
             }
         } else if (embed is EmbedImages) {
-            embed.images.forEachIndexed { i, image ->
-                val altText = "[IMAGE $i]\r\n" + image.alt.ifEmpty { "[alt text not provided]" }
+            (embed.images ?: emptyList()).forEachIndexed { i, image ->
+                val altText = "[IMAGE $i]\r\n" + (image.alt ?: "").ifEmpty { "[alt text not provided]" }
                 writeAppText(altText)
                 waitForReturnKey()
             }

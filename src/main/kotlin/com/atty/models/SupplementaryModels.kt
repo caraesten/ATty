@@ -1,9 +1,9 @@
 package com.atty.models
 
-import bsky4j.model.bsky.actor.ActorDefsProfileView
-import bsky4j.model.bsky.actor.ActorDefsProfileViewBasic
-import bsky4j.model.bsky.embed.EmbedViewUnion
-import bsky4j.model.bsky.feed.FeedPost
+import work.socialhub.kbsky.model.app.bsky.actor.ActorDefsProfileView
+import work.socialhub.kbsky.model.app.bsky.actor.ActorDefsProfileViewBasic
+import work.socialhub.kbsky.model.app.bsky.embed.EmbedViewUnion
+import work.socialhub.kbsky.model.app.bsky.feed.FeedPost
 
 enum class ImageMode {
     NoImages, AsciiImages, SixelImages;
